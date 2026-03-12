@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poder Operacional - 8º CRBM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-active { border-bottom: 4px solid #1e40af; color: #1e40af; font-weight: bold; }
+        .input-number-sm { width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; text-align: center; }
+        .th-small { font-size: 10px; text-transform: uppercase; text-align: center; background-color: #374151; }
+        .td-small { font-size: 11px; text-align: center; border-left: 1px solid #e5e7eb; }
+        .brasao-shadow { filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.4)); }
+        .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.9); display: flex; justify-content: center; align-items: center; z-index: 50; }
+        .password-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 60; }
+        @media print { .no-print { display: none; } }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <!-- 🔐 MODAL DE SENHA PARA GERADOR DE LINKS -->
+    <div id="password-modal" class="password-modal hidden">
+        <div class="bg-white p-6 rounded-lg shadow-2xl max-w-sm w-full border-t-4 border-blue-700">
+            <h3 class="text-lg font-bold text-blue-800 mb-4 uppercase">🔒 Acesso Restrito</h3>
+            <p class="text-sm text-gray-600 mb-4">Digite a senha para acessar o Gerador de Links:</p>
+            <input type="password" id="password-input" class="w-full p-3 border-2 border-gray-300 rounded mb-4 text-center text-lg" placeholder="••••••••">
+            <div class="flex gap-2">
+                <button onclick="closePasswordModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 rounded uppercase text-xs">Cancelar</button>
+                <button onclick="checkPassword()" class="flex-1 bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 rounded uppercase text-xs">Entrar</button>
+            </div>
+            <p id="password-error" class="text-red-600 text-xs mt-2 text-center font-bold hidden">❌ Senha incorreta!</p>
+        </div>
+    </div>
+
+    <div id="loader" class="loading-overlay">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-700 mx-auto"></div>
+            <p class="mt-2 text-red-700 font-bold">Conectando ao Sistema Central...</p>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-red-700 text-white p-4 shadow-lg border-b-4 border-yellow-500">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-6">
+                <div class="bg-transparent">
+                    <img src="https://api.claudette.ai/v1/files/uploaded:image_2b1941.png-52e02c2b-7c36-4993-ae93-0ff2988f3617" alt="Brasão 8º CRBM" class="h-28 w-auto brasao-shadow" onerror="this.src='https://via.placeholder.com/150?text=8%C2%BA+CRBM'">
+                </div>
+                <div>
+                    <h1 class="text-3xl font-black uppercase tracking-tighter italic leading-none">8º Comando Regional</h1>
+                    <p class="text-sm font-bold text-yellow-400 mt-1 uppercase tracking-wide">Corpo de Bombeiros Militar de Goiás</p>
+                    <p class="text-xs text-red-100 opacity-90 font-medium">Gestão de Poder Operacional e Estatística Diária</p>
+                </div>
+            </div>
+            <div class="text-right no-print">
+                <div id="current-date" class="text-sm font-mono bg-red-900 px-4 py-2 rounded-lg border border-red-500 shadow-inner"></div>
+                <p class="text-[10px] mt-1 uppercase font-bold text-red-200 tracking-widest">Uruaçu - Sede do Comando</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4">
+        <!-- Navegação de Abas -->
+        <div class="flex gap-4 mb-6 border-b border-gray-300 no-print" id="main-tabs">
+            <button onclick="switchTab('dashboard')" id="btn-dashboard" class="py-2 px-4 tab-active transition-all uppercase text-xs tracking-widest">Painel do Comando</button>
+            <button onclick="checkLinksAccess()" id="btn-links" class="py-2 px-4 transition-all uppercase text-xs tracking-widest text-blue-700 font-bold">Gerador de Links</button>
+            <!-- ABA INSERÇÃO: Só aparece via link com parâmetro -->
+            <button onclick="switchTab('input')" id="btn-input" class="py-2 px-4 transition-all uppercase text-xs tracking-widest hidden">Inserção de Dados</button>
+        </div>
+
+        <!-- ABA 1: PAINEL DO COMANDO -->
+        <section id="tab-dashboard" class="block">
+            <!-- Cards de Estatísticas -->
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white p-4 rounded-lg shadow border-l-4 border-red-600 text-center">
+                    <h3 class="text-gray-500 text-xs uppercase font-bold">Efetivo Total Regional</h3>
+                    <p id="stat-efetivo-total" class="text-2xl font-bold text-red-700">0</p>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500 text-center">
+                    <h3 class="text-gray-500 text-xs uppercase font-bold">Ocorrências Atendidas (24h)</h3>
+                    <p id="stat-ocorrencias" class="text-2xl font-bold text-blue-600">0</p>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow border-l-4 border-yellow-500 text-center">
+                    <h3 class="text-gray-500 text-xs uppercase font-bold">Unidades com Pendências</h3>
+                    <p id="stat-pendencias" class="text-2xl font-bold text-yellow-600">0</p>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow border-l-4 border-green-500 text-center">
+                    <h3 class="text-gray-500 text-xs uppercase font-bold">Última Atualização</h3>
+                    <p id="stat-ultima-att" class="text-sm font-bold text-green-600">Aguardando...</p>
+                </div>
+            </div>
+
+            <!-- Tabela Consolidada -->
+            <div class="bg-white rounded-lg shadow overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm min-w-[1100px]">
+                    <thead class="bg-gray-800 text-white">
+                        <tr>
+                            <th rowspan="2" class="p-3 border-r border-gray-700">Unidade BM</th>
+                            <th rowspan="2" class="p-3 text-center border-r border-gray-700">Efetivo</th>
+                            <th rowspan="2" class="p-3 border-r border-gray-700">VTRs Ativas</th>
+                            <th rowspan="2" class="p-3 border-r border-gray-700">Baixas/Pendências</th>
+                            <th colspan="7" class="p-1 text-center border-b border-gray-700 bg-gray-900 font-bold tracking-widest text-[10px]">Ocorrências Atendidas (24h)</th>
+                            <th rowspan="2" class="p-3 border-l border-gray-700 text-center">Oficial de Dia</th>
+                        </tr>
+                        <tr>
+                            <th class="th-small p-1">RES</th>
+                            <th class="th-small p-1">I.URB</th>
+                            <th class="th-small p-1">I.VEG</th>
+                            <th class="th-small p-1">SALV</th>
+                            <th class="th-small p-1">PREV</th>
+                            <th class="th-small p-1">OUT</th>
+                            <th class="th-small p-1 bg-blue-900 font-black">SOMA</th>
+                        </tr>
+                    </thead>
+                    <tbody id="consolidated-body">
+                        <tr><td colspan="12" class="p-4 text-center text-gray-500">Carregando dados da planilha...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-4 text-center no-print">
+                <button onclick="loadDashboard()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-bold text-xs uppercase">🔄 Atualizar Dados</button>
+            </div>
+        </section>
+
+        <!-- ABA 2: INSERÇÃO DE DADOS (Só aparece via link) -->
+        <section id="tab-input" class="hidden">
+            <div class="bg-white p-6 rounded-lg shadow max-w-4xl mx-auto border-t-8 border-red-700">
+                <div id="lock-warning" class="mb-4 p-3 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 text-xs font-bold uppercase flex items-center gap-2">
+                    🔒 <span id="locked-unit-name">Unidade Identificada</span> - Dados serão salvos para esta unidade.
+                </div>
+                
+                <div class="flex justify-between items-center mb-6 border-b pb-4">
+                    <h2 class="text-xl font-bold text-red-700 uppercase tracking-wide italic">Reporte Diário</h2>
+                    <button onclick="exitUnitMode()" id="btn-exit-unit" class="text-[10px] bg-gray-200 px-3 py-1 rounded uppercase font-bold hover:bg-gray-300">⬅ Voltar ao Painel</button>
+                </div>
+                
+                <!-- Unidade FIXA (não editável) -->
+                <div class="mb-6 p-3 bg-blue-50 rounded border border-blue-200">
+                    <label class="block text-xs font-bold mb-1 text-blue-800 uppercase">Unidade Operacional:</label>
+                    <p id="display-unidade" class="text-lg font-black text-blue-900">Carregando...</p>
+                    <input type="hidden" id="form-unidade">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm font-bold mb-2 text-gray-700 uppercase">Efetivo Pronto (24h):</label>
+                        <input type="number" id="form-efetivo" class="w-full p-2.5 border-2 border-gray-200 rounded" placeholder="Ex: 14" min="0">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold mb-2 text-gray-700 uppercase">Oficial / Adjunto (Posto; Nome):</label>
+                        <input type="text" id="form-oficial-nome" class="w-full p-2.5 border-2 border-gray-200 rounded" placeholder="Ex: 1º Ten Júnior">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold mb-2 text-gray-700 uppercase">Contato (Telefone):</label>
+                        <input type="text" id="form-oficial-contato" class="w-full p-2.5 border-2 border-gray-200 rounded" placeholder="Ex: (62) 98425-3011">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold mb-2 text-gray-700 uppercase">Viaturas Prontas:</label>
+                        <textarea id="form-vtr-ativas" class="w-full p-2 border-2 border-blue-100 rounded h-16 text-sm italic" placeholder="Prefixos separados por vírgula..."></textarea>
+                    </div>
+                </div>
+
+                <h3 class="font-black text-blue-900 mb-4 text-[11px] uppercase flex items-center gap-2">
+                    <span class="bg-blue-900 text-white px-2 py-0.5 rounded">Estatística</span> Ocorrências Atendidas
+                </h3>
+                <div class="grid grid-cols-3 md:grid-cols-6 gap-4 mb-6 bg-blue-50 p-4 rounded-lg">
+                    <div><label class="block text-[10px] font-bold uppercase mb-1">RES</label><input type="number" id="oc-resgate" class="input-number-sm font-bold" value="0" min="0"></div>
+                    <div><label class="block text-[10px] font-bold uppercase mb-1">I.URB</label><input type="number" id="oc-urbano" class="input-number-sm font-bold" value="0" min="0"></div>
+                    <div><label class="block text-[10px] font-bold uppercase mb-1">I.VEG</label><input type="number" id="oc-veg" class="input-number-sm font-bold" value="0" min="0"></div>
+                    <div><label class="block text-[10px] font-bold uppercase mb-1">SALV</label><input type="number" id="oc-busca" class="input-number-sm font-bold" value="0" min="0"></div>
+                    <div><label class="block text-[10px] font-bold uppercase mb-1">PREV</label><input type="number" id="oc-prev" class="input-number-sm font-bold" value="0" min="0"></div>
+                    <div><label class="block text-[10px] font-bold uppercase mb-1">OUT</label><input type="number" id="oc-outras" class="input-number-sm font-bold" value="0" min="0"></div>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-bold mb-1 text-red-600 uppercase">Baixas e Motivos:</label>
+                    <textarea id="form-baixas" class="w-full p-2 border-2 border-red-100 rounded h-16 text-sm italic" placeholder="Prefixos e motivo da baixa..."></textarea>
+                </div>
+
+                <button onclick="saveData()" id="btn-save" class="w-full bg-red-700 hover:bg-red-800 text-white font-black py-4 rounded-lg shadow-xl transition-all uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed">
+                    📤 Enviar Dados ao 8º CRBM
+                </button>
+                <p id="save-status" class="text-center text-xs mt-2 font-bold"></p>
+            </div>
+        </section>
+
+        <!-- ABA 3: GERADOR DE LINKS (Protegido por senha) -->
+        <section id="tab-links" class="hidden">
+            <div class="bg-white p-6 rounded-lg shadow max-w-4xl mx-auto border-t-8 border-blue-700">
+                <h2 class="text-xl font-bold text-blue-800 mb-4 uppercase italic">🔗 Links de Distribuição por Unidade</h2>
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-3 mb-6">
+                    <p class="text-[11px] text-blue-800 font-bold uppercase italic mb-1">Como usar:</p>
+                    <p class="text-xs text-blue-700 leading-relaxed">
+                        1. Clique em <b>"Copiar Link"</b> e envie para o WhatsApp da unidade.<br>
+                        2. Ao acessar o link, a unidade verá apenas o formulário de reporte com sua unidade já selecionada.<br>
+                        3. Os dados serão salvos automaticamente na planilha central.
+                    </p>
+                </div>
+                
+                <div class="space-y-3" id="link-list-container">
+                    <!-- Gerado dinamicamente -->
+                </div>
+
+                <div class="mt-8 p-4 bg-gray-100 rounded border-l-4 border-gray-400">
+                    <h3 class="font-bold text-sm uppercase mb-2">🎖️ Acesso do Comando (Painel Geral):</h3>
+                    <div class="flex gap-2">
+                        <input type="text" id="admin-link-field" readonly class="w-full p-2 bg-white border rounded text-[10px] font-mono text-gray-500">
+                        <button onclick="copyToClipboard('admin-link-field')" class="bg-gray-800 text-white px-4 py-2 rounded text-[10px] font-bold uppercase shrink-0 hover:bg-gray-900">Copiar</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // ============================================================
+        // ⚙️ CONFIGURAÇÕES GERAIS - EDITE AQUI PARA PERSONALIZAR
+        // ============================================================
+        
+        // 🔑 SENHA PARA ACESSAR O GERADOR DE LINKS (FÁCIL DE ALTERAR)
+        const LINKS_PASSWORD = "cbmgo193";  // <--- ALTERE ESTA SENHA AQUI
+        
+        // 📡 URL DO GOOGLE APPS SCRIPT (SEU ENDPOINT)
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzB_ZOh57vlXnIScLwDVsTHXtlkJ3AdBnzZPjvaJHiPBzrnzdH8MxTAhxGkJFKNzEU/exec";
+        
+        // 🗂️ MAPEAMENTO: UNIDADE → LINHA NA PLANILHA (Coluna 1 = Nome da Unidade)
+        const UNIT_MAPPING = {
+            "11º BBM/Porangatu": { row: 2, slug: "Porangatu" },
+            "18º BBM/Goianésia": { row: 3, slug: "Goianesia" },
+            "1ª CIBM/Minaçu": { row: 4, slug: "Minacu" },
+            "6ª CIBM/Niquelândia": { row: 5, slug: "Niquelandia" },
+            "11ª CIBM/Uruaçu": { row: 6, slug: "Uruacu" },
+            "22ª CIBM/São Miguel do Araguaia": { row: 7, slug: "Miguel" },
+            "DBM de Barro Alto": { row: 8, slug: "Barro" }
+        };
+        
+        // 📊 MAPEAMENTO: CAMPO → COLUNA NA PLANILHA
+        const COL = {
+            NOME: 1, EFETIVO: 2, VTRS: 3, BAIXAS: 4, OFICIAL: 5, CONTATO: 6,
+            RES: 7, URB: 8, VEG: 9, SALV: 10, PREV: 11, OUT: 12, SOMA: 13, DATA: 14
+        };
+
+        // ============================================================
+        // 🧠 LÓGICA DO SISTEMA
+        // ============================================================
+        
+        let currentUnit = null;
+        let linksUnlocked = false;
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            updateClock();
+            setInterval(updateClock, 1000);
+            
+            // Verifica se há parâmetro de unidade na URL
+            checkUrlUnitParam();
+            
+            // Se não houver unidade, esconde aba de inserção e carrega dashboard
+            if (!currentUnit) {
+                document.getElementById('btn-input').classList.add('hidden');
+                loadDashboard();
+            } else {
+                // Se tiver unidade, já prepara o formulário
+                setupUnitForm();
+                switchTab('input');
+            }
+            
+            // Esconde loader
+            setTimeout(() => {
+                document.getElementById('loader').style.display = 'none';
+            }, 1500);
+        });
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('current-date').innerText = 
+                now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR');
+        }
+
+        // 🔐 Controle de Senha para Gerador de Links
+        function checkLinksAccess() {
+            if (linksUnlocked) {
+                switchTab('links');
+                generateLinksUI();
+                return;
+            }
+            document.getElementById('password-modal').classList.remove('hidden');
+            document.getElementById('password-input').value = '';
+            document.getElementById('password-error').classList.add('hidden');
+            document.getElementById('password-input').focus();
+        }
+
+        function closePasswordModal() {
+            document.getElementById('password-modal').classList.add('hidden');
+        }
+
+        function checkPassword() {
+            const input = document.getElementById('password-input').value.trim();
+            if (input === LINKS_PASSWORD) {
+                linksUnlocked = true;
+                closePasswordModal();
+                switchTab('links');
+                generateLinksUI();
+            } else {
+                document.getElementById('password-error').classList.remove('hidden');
+                document.getElementById('password-input').value = '';
+                document.getElementById('password-input').focus();
+            }
+        }
+
+        // Permitir Enter no campo de senha
+        document.getElementById('password-input')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkPassword();
+        });
+
+        // 🔗 Verifica parâmetro de unidade na URL (?unidade=Slug)
+        function checkUrlUnitParam() {
+            const params = new URLSearchParams(window.location.search);
+            const slug = params.get('unidade');
+            if (slug) {
+                // Encontra a unidade pelo slug
+                for (const [name, config] of Object.entries(UNIT_MAPPING)) {
+                    if (config.slug.toLowerCase() === slug.toLowerCase()) {
+                        currentUnit = name;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // 📋 Configura o formulário para unidade fixa
+        function setupUnitForm() {
+            if (!currentUnit || !UNIT_MAPPING[currentUnit]) {
+                alert("⚠️ Unidade não identificada. Redirecionando para o painel.");
+                switchTab('dashboard');
+                return;
+            }
+            
+            document.getElementById('form-unidade').value = currentUnit;
+            document.getElementById('display-unidade').innerText = currentUnit;
+            document.getElementById('locked-unit-name').innerText = currentUnit;
+            document.getElementById('btn-input').classList.remove('hidden');
+            
+            // Carrega dados existentes para edição (opcional)
+            loadUnitData(currentUnit);
+        }
+
+        function exitUnitMode() {
+            currentUnit = null;
+            document.getElementById('btn-input').classList.add('hidden');
+            switchTab('dashboard');
+            loadDashboard();
+            // Limpa URL sem recarregar
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        // 🔄 Navegação entre abas
+        function switchTab(tabName) {
+            // Esconde todas as abas
+            ['dashboard', 'input', 'links'].forEach(t => {
+                document.getElementById('tab-' + t).classList.add('hidden');
+                document.getElementById('btn-' + t).classList.remove('tab-active');
+            });
+            // Mostra a selecionada
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+            document.getElementById('btn-' + tabName).classList.add('tab-active');
+        }
+
+        // 📋 Copiar para área de transferência
+        function copyToClipboard(elementId) {
+            const el = document.getElementById(elementId);
+            el.select();
+            el.setSelectionRange(0, 99999);
+            document.execCommand('copy');
+            
+            // Feedback visual
+            const originalText = el.title || '';
+            el.title = "✅ Copiado!";
+            setTimeout(() => { el.title = originalText; }, 2000);
+        }
+
+        // 🔗 Gerar lista de links
+        function generateLinksUI() {
+            const container = document.getElementById('link-list-container');
+            const baseUrl = window.location.href.split('?')[0].replace(/\/$/, '');
+            
+            document.getElementById('admin-link-field').value = baseUrl;
+            container.innerHTML = '';
+
+            Object.entries(UNIT_MAPPING).forEach(([unitName, config], index) => {
+                const unitLink = `${baseUrl}?unidade=${config.slug}`;
+                const div = document.createElement('div');
+                div.className = "p-4 bg-white border border-gray-200 rounded-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-sm hover:border-blue-400 hover:shadow-md transition-all";
+                div.innerHTML = `
+                    <div class="flex-1 min-w-0">
+                        <span class="block text-xs font-black text-gray-800 uppercase tracking-tight mb-1">${unitName}</span>
+                        <input type="text" id="link-${index}" readonly value="${unitLink}" 
+                            class="w-full bg-gray-50 text-[10px] text-blue-600 font-mono p-2 rounded border border-gray-200 focus:outline-none focus:border-blue-400 truncate">
+                    </div>
+                    <div class="flex gap-2 w-full md:w-auto">
+                        <button onclick="copyToClipboard('link-${index}')" 
+                            class="flex-1 md:flex-none bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-[10px] font-bold uppercase transition-all shadow">
+                            📋 Copiar
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // 📡 Função para chamar o Google Apps Script
+        async function callScript(action, params) {
+            const url = new URL(SCRIPT_URL);
+            url.searchParams.append('acao', action);
+            Object.entries(params).forEach(([key, value]) => {
+                url.searchParams.append(key, value);
+            });
+            
+            try {
+                const response = await fetch(url.toString(), { 
+                    method: 'GET',
+                    redirect: 'follow'
+                });
+                const result = await response.json();
+                return result;
+            } catch (error) {
+                console.error('Erro na chamada do script:', error);
+                return { sucesso: false, mensagem: 'Erro de conexão: ' + error.message };
+            }
+        }
+
+        // 💾 Salvar dados na planilha
+        async function saveData() {
+            if (!currentUnit) {
+                alert("⚠️ Unidade não identificada!");
+                return;
+            }
+            
+            const btn = document.getElementById('btn-save');
+            const status = document.getElementById('save-status');
+            const row = UNIT_MAPPING[currentUnit].row;
+            
+            // Coleta dados do formulário
+            const resgate = parseInt(document.getElementById('oc-resgate').value) || 0;
+            const urbano = parseInt(document.getElementById('oc-urbano').value) || 0;
+            const veg = parseInt(document.getElementById('oc-veg').value) || 0;
+            const busca = parseInt(document.getElementById('oc-busca').value) || 0;
+            const prev = parseInt(document.getElementById('oc-prev').value) || 0;
+            const outras = parseInt(document.getElementById('oc-outras').value) || 0;
+            const soma = resgate + urbano + veg + busca + prev + outras;
+            
+            const dados = {
+                efetivo: document.getElementById('form-efetivo').value || 0,
+                vtrAtivas: document.getElementById('form-vtr-ativas').value || '-',
+                baixas: document.getElementById('form-baixas').value || 'Nenhuma',
+                oficialNome: document.getElementById('form-oficial-nome').value || '-',
+                oficialContato: document.getElementById('form-oficial-contato').value || '-',
+                resgate, urbano, veg, busca, prev, outras, soma,
+                updatedAt: new Date().toLocaleString('pt-BR')
+            };
+            
+            // Desabilita botão durante envio
+            btn.disabled = true;
+            btn.innerHTML = '⏳ ENVIANDO...';
+            status.innerText = '';
+            status.className = 'text-center text-xs mt-2 font-bold text-blue-600';
+            
+            try {
+                // Grava cada campo na coluna correspondente
+                const writes = [
+                    callScript('gravar', { linha: row, coluna: COL.EFETIVO, valor: dados.efetivo }),
+                    callScript('gravar', { linha: row, coluna: COL.VTRS, valor: dados.vtrAtivas }),
+                    callScript('gravar', { linha: row, coluna: COL.BAIXAS, valor: dados.baixas }),
+                    callScript('gravar', { linha: row, coluna: COL.OFICIAL, valor: dados.oficialNome }),
+                    callScript('gravar', { linha: row, coluna: COL.CONTATO, valor: dados.oficialContato }),
+                    callScript('gravar', { linha: row, coluna: COL.RES, valor: dados.resgate }),
+                    callScript('gravar', { linha: row, coluna: COL.URB, valor: dados.urbano }),
+                    callScript('gravar', { linha: row, coluna: COL.VEG, valor: dados.veg }),
+                    callScript('gravar', { linha: row, coluna: COL.SALV, valor: dados.busca }),
+                    callScript('gravar', { linha: row, coluna: COL.PREV, valor: dados.prev }),
+                    callScript('gravar', { linha: row, coluna: COL.OUT, valor: dados.outras }),
+                    callScript('gravar', { linha: row, coluna: COL.SOMA, valor: dados.soma }),
+                    callScript('gravar', { linha: row, coluna: COL.DATA, valor: dados.updatedAt })
+                ];
+                
+                await Promise.all(writes);
+                
+                status.innerText = '✅ Dados enviados com sucesso!';
+                status.className = 'text-center text-xs mt-2 font-bold text-green-600';
+                
+                // Atualiza dashboard se estiver visível
+                if (!document.getElementById('tab-dashboard').classList.contains('hidden')) {
+                    loadDashboard();
+                }
+                
+            } catch (error) {
+                status.innerText = '❌ Erro ao enviar: ' + error.message;
+                status.className = 'text-center text-xs mt-2 font-bold text-red-600';
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '📤 Enviar Dados ao 8º CRBM';
+            }
+        }
+
+        // 📊 Carregar dados de uma unidade específica (para edição)
+        async function loadUnitData(unitName) {
+            const row = UNIT_MAPPING[unitName].row;
+            const fields = [
+                { col: COL.EFETIVO, id: 'form-efetivo' },
+                { col: COL.VTRS, id: 'form-vtr-ativas' },
+                { col: COL.BAIXAS, id: 'form-baixas' },
+                { col: COL.OFICIAL, id: 'form-oficial-nome' },
+                { col: COL.CONTATO, id: 'form-oficial-contato' },
+                { col: COL.RES, id: 'oc-resgate' },
+                { col: COL.URB, id: 'oc-urbano' },
+                { col: COL.VEG, id: 'oc-veg' },
+                { col: COL.SALV, id: 'oc-busca' },
+                { col: COL.PREV, id: 'oc-prev' },
+                { col: COL.OUT, id: 'oc-outras' }
+            ];
+            
+            for (const field of fields) {
+                try {
+                    const result = await callScript('ler', { linha: row, coluna: field.col });
+                    if (result.sucesso && result.dados?.conteudo) {
+                        document.getElementById(field.id).value = result.dados.conteudo;
+                    }
+                } catch (e) {
+                    console.warn(`Não foi possível carregar ${field.id}:`, e);
+                }
+            }
+        }
+
+        // 📈 Carregar dashboard com dados de todas as unidades
+        async function loadDashboard() {
+            const tbody = document.getElementById('consolidated-body');
+            tbody.innerHTML = '<tr><td colspan="12" class="p-4 text-center text-blue-600 font-bold">🔄 Carregando dados da planilha...</td></tr>';
+            
+            let totalEfetivo = 0, totalOcorrencias = 0, unidadesPendentes = 0;
+            let rows = [];
+            
+            // Carrega dados de cada unidade
+            for (const [unitName, config] of Object.entries(UNIT_MAPPING)) {
+                const row = config.row;
+                try {
+                    // Lê todos os campos da linha
+                    const [efetivo, vtrs, baixas, oficial, contato, res, urb, veg, salv, prev, out, soma, data] = await Promise.all([
+                        callScript('ler', { linha: row, coluna: COL.EFETIVO }),
+                        callScript('ler', { linha: row, coluna: COL.VTRS }),
+                        callScript('ler', { linha: row, coluna: COL.BAIXAS }),
+                        callScript('ler', { linha: row, coluna: COL.OFICIAL }),
+                        callScript('ler', { linha: row, coluna: COL.CONTATO }),
+                        callScript('ler', { linha: row, coluna: COL.RES }),
+                        callScript('ler', { linha: row, coluna: COL.URB }),
+                        callScript('ler', { linha: row, coluna: COL.VEG }),
+                        callScript('ler', { linha: row, coluna: COL.SALV }),
+                        callScript('ler', { linha: row, coluna: COL.PREV }),
+                        callScript('ler', { linha: row, coluna: COL.OUT }),
+                        callScript('ler', { linha: row, coluna: COL.SOMA }),
+                        callScript('ler', { linha: row, coluna: COL.DATA })
+                    ]);
+                    
+                    const d = {
+                        efetivo: parseInt(efetivo.dados?.conteudo) || 0,
+                        vtrs: vtrs.dados?.conteudo || '-',
+                        baixas: baixas.dados?.conteudo || '-',
+                        oficial: oficial.dados?.conteudo || '-',
+                        contato: contato.dados?.conteudo || '-',
+                        ocorrencias: {
+                            res: parseInt(res.dados?.conteudo) || 0,
+                            urb: parseInt(urb.dados?.conteudo) || 0,
+                            veg: parseInt(veg.dados?.conteudo) || 0,
+                            salv: parseInt(salv.dados?.conteudo) || 0,
+                            prev: parseInt(prev.dados?.conteudo) || 0,
+                            out: parseInt(out.dados?.conteudo) || 0
+                        },
+                        soma: parseInt(soma.dados?.conteudo) || 0,
+                        data: data.dados?.conteudo || 'Nunca'
+                    };
+                    
+                    // Acumula estatísticas
+                    totalEfetivo += d.efetivo;
+                    totalOcorrencias += d.soma;
+                    if (d.baixas !== 'Nenhuma' && d.baixas !== '-' && d.baixas) unidadesPendentes++;
+                    
+                    // Gera linha da tabela
+                    rows.push({ unitName, data: d });
+                    
+                } catch (error) {
+                    console.error(`Erro ao carregar ${unitName}:`, error);
+                    rows.push({ unitName, data: null, error: true });
+                }
+            }
+            
+            // Renderiza tabela
+            tbody.innerHTML = '';
+            rows.forEach(({ unitName, data, error }) => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b hover:bg-gray-50 transition-colors";
+                
+                if (error || !data) {
+                    tr.innerHTML = `
+                        <td class="p-3 font-bold border-r text-gray-500">${unitName}</td>
+                        <td colspan="11" class="p-3 text-center text-red-500 text-xs italic">⚠️ Dados indisponíveis</td>
+                    `;
+                } else {
+                    const efetivoClass = data.efetivo < 8 ? 'text-red-600 bg-red-50 font-black' : 'text-blue-700 font-bold';
+                    const baixasClass = (data.baixas !== 'Nenhuma' && data.baixas !== '-' && data.baixas) ? 'text-red-700 font-bold bg-red-50' : 'text-gray-500';
+                    
+                    tr.innerHTML = `
+                        <td class="p-3 font-bold border-r text-gray-700">${unitName}</td>
+                        <td class="p-3 text-center border-r ${efetivoClass}">${data.efetivo}</td>
+                        <td class="p-3 text-[11px] border-r italic text-gray-600">${data.vtrs}</td>
+                        <td class="p-3 text-[11px] border-r ${baixasClass}">${data.baixas || '-'}</td>
+                        <td class="td-small">${data.ocorrencias.res}</td>
+                        <td class="td-small">${data.ocorrencias.urb}</td>
+                        <td class="td-small">${data.ocorrencias.veg}</td>
+                        <td class="td-small">${data.ocorrencias.salv}</td>
+                        <td class="td-small">${data.ocorrencias.prev}</td>
+                        <td class="td-small">${data.ocorrencias.out}</td>
+                        <td class="td-small bg-blue-50 font-black border-r border-l text-blue-900">${data.soma}</td>
+                        <td class="p-2 text-center bg-gray-50">
+                            <div class="font-bold text-[11px]">${data.oficial}</div>
+                            <div class="text-[9px] text-blue-600">${data.contato}</div>
+                        </td>
+                    `;
+                }
+                tbody.appendChild(tr);
+            });
+            
+            // Atualiza cards de estatística
+            document.getElementById('stat-efetivo-total').innerText = totalEfetivo;
+            document.getElementById('stat-ocorrencias').innerText = totalOcorrencias;
+            document.getElementById('stat-pendencias').innerText = unidadesPendentes;
+            document.getElementById('stat-ultima-att').innerText = new Date().toLocaleTimeString('pt-BR');
+        }
+    </script>
+</body>
+</html>
