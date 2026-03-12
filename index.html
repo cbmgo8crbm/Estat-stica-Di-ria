@@ -13,6 +13,7 @@
         .brasao-shadow { filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.4)); }
         .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.95); display: flex; justify-content: center; align-items: center; z-index: 50; }
         .password-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: flex; justify-content: center; align-items: center; z-index: 60; }
+        .debug-panel { background: #1a1a2e; color: #00ff00; font-family: monospace; font-size: 11px; padding: 10px; border-radius: 5px; margin-top: 10px; max-height: 200px; overflow-y: auto; }
         @media print { .no-print { display: none; } }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
         .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
@@ -20,21 +21,21 @@
 </head>
 <body class="bg-gray-100 font-sans">
 
-    <!-- 🔐 MODAL DE SENHA PARA GERADOR DE LINKS -->
+    <!-- 🔐 MODAL DE SENHA -->
     <div id="password-modal" class="password-modal hidden">
-        <div class="bg-white p-6 rounded-lg shadow-2xl max-w-sm w-full border-t-4 border-blue-700 transform transition-all">
+        <div class="bg-white p-6 rounded-lg shadow-2xl max-w-sm w-full border-t-4 border-blue-700">
             <h3 class="text-lg font-bold text-blue-800 mb-4 uppercase text-center">🔒 Acesso Restrito</h3>
             <p class="text-sm text-gray-600 mb-4 text-center">Digite a senha para acessar o Gerador de Links:</p>
             <input type="password" id="password-input" class="w-full p-3 border-2 border-gray-300 rounded mb-4 text-center text-lg tracking-widest" placeholder="••••••••" autocomplete="off">
             <div class="flex gap-2">
-                <button onclick="closePasswordModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 rounded uppercase text-xs transition-colors">Cancelar</button>
-                <button onclick="checkPassword()" class="flex-1 bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 rounded uppercase text-xs transition-colors">Entrar</button>
+                <button onclick="closePasswordModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 rounded uppercase text-xs">Cancelar</button>
+                <button onclick="checkPassword()" class="flex-1 bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 rounded uppercase text-xs">Entrar</button>
             </div>
-            <p id="password-error" class="text-red-600 text-xs mt-3 text-center font-bold hidden animate-pulse">❌ Senha incorreta!</p>
+            <p id="password-error" class="text-red-600 text-xs mt-3 text-center font-bold hidden">❌ Senha incorreta!</p>
         </div>
     </div>
 
-    <!-- Loader Inicial -->
+    <!-- Loader -->
     <div id="loader" class="loading-overlay">
         <div class="text-center">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-700 mx-auto"></div>
@@ -48,7 +49,6 @@
         <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-4">
                 <div class="bg-transparent flex-shrink-0">
-                    <!-- ✅ IMAGEM CORRIGIDA: URLs sem espaços que causavam piscamento -->
                     <img src="https://api.claudette.ai/v1/files/uploaded:image_2b1941.png-52e02c2b-7c36-4993-ae93-0ff2988f3617" 
                          alt="Brasão 8º CRBM" 
                          class="h-24 md:h-28 w-auto brasao-shadow" 
@@ -71,17 +71,16 @@
     </header>
 
     <main class="container mx-auto p-3 md:p-4">
-        <!-- Navegação de Abas -->
+        <!-- Navegação -->
         <div class="flex gap-2 md:gap-4 mb-6 border-b border-gray-300 no-print overflow-x-auto pb-2" id="main-tabs">
             <button onclick="switchTab('dashboard')" id="btn-dashboard" class="py-2 px-3 md:px-4 tab-active transition-all uppercase text-[10px] md:text-xs tracking-widest whitespace-nowrap">Painel do Comando</button>
             <button onclick="checkLinksAccess()" id="btn-links" class="py-2 px-3 md:px-4 transition-all uppercase text-[10px] md:text-xs tracking-widest text-blue-700 font-bold whitespace-nowrap">Gerador de Links</button>
-            <!-- ABA INSERÇÃO: Só aparece via link com parâmetro -->
             <button onclick="switchTab('input')" id="btn-input" class="py-2 px-3 md:px-4 transition-all uppercase text-[10px] md:text-xs tracking-widest hidden whitespace-nowrap">Inserção de Dados</button>
         </div>
 
-        <!-- ABA 1: PAINEL DO COMANDO -->
+        <!-- ABA 1: DASHBOARD -->
         <section id="tab-dashboard" class="block">
-            <!-- Cards de Estatísticas -->
+            <!-- Cards -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
                 <div class="bg-white p-3 md:p-4 rounded-lg shadow border-l-4 border-red-600 text-center">
                     <h3 class="text-gray-500 text-[10px] md:text-xs uppercase font-bold">Efetivo Total</h3>
@@ -101,17 +100,17 @@
                 </div>
             </div>
 
-            <!-- Tabela Consolidada -->
+            <!-- Tabela -->
             <div class="bg-white rounded-lg shadow overflow-x-auto">
                 <table class="w-full text-left border-collapse text-sm min-w-[900px] md:min-w-[1100px]">
                     <thead class="bg-gray-800 text-white">
                         <tr>
                             <th rowspan="2" class="p-2 md:p-3 border-r border-gray-700 text-[10px] md:text-sm">Unidade BM</th>
                             <th rowspan="2" class="p-2 md:p-3 text-center border-r border-gray-700 text-[10px] md:text-sm">Efetivo</th>
-                            <th rowspan="2" class="p-2 md:p-3 border-r border-gray-700 text-[10px] md:text-sm hidden md:table-cell">VTRs Ativas</th>
+                            <th rowspan="2" class="p-2 md:p-3 border-r border-gray-700 text-[10px] md:text-sm hidden md:table-cell">VTRs</th>
                             <th rowspan="2" class="p-2 md:p-3 border-r border-gray-700 text-[10px] md:text-sm">Pendências</th>
-                            <th colspan="6" class="p-1 text-center border-b border-gray-700 bg-gray-900 font-bold tracking-widest text-[8px] md:text-[10px]">Ocorrências (24h)</th>
-                            <th rowspan="2" class="p-2 md:p-3 border-l border-gray-700 text-center text-[10px] md:text-sm">Oficial de Dia</th>
+                            <th colspan="6" class="p-1 text-center border-b border-gray-700 bg-gray-900 font-bold tracking-widest text-[8px] md:text-[10px]">Ocorrências</th>
+                            <th rowspan="2" class="p-2 md:p-3 border-l border-gray-700 text-center text-[10px] md:text-sm">Oficial</th>
                         </tr>
                         <tr>
                             <th class="th-small p-1">RES</th>
@@ -124,101 +123,93 @@
                     </thead>
                     <tbody id="consolidated-body">
                         <tr><td colspan="12" class="p-4 text-center text-gray-500">
-                            <div class="animate-pulse">🔄 Carregando dados da planilha...</div>
+                            <div class="animate-pulse">🔄 Carregando...</div>
                         </td></tr>
                     </tbody>
                 </table>
             </div>
+
+            <!-- Debug Panel (aparece apenas em erro) -->
+            <div id="debug-container" class="mt-4 hidden">
+                <button onclick="toggleDebug()" class="text-xs text-blue-600 hover:text-blue-800 underline mb-2">🔍 Ver detalhes do erro</button>
+                <div id="debug-panel" class="debug-panel hidden"></div>
+            </div>
+
             <div class="mt-4 text-center no-print">
                 <button onclick="loadDashboard()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded font-bold text-xs uppercase transition-colors shadow">🔄 Atualizar Dados</button>
                 <p id="dashboard-status" class="text-[10px] text-gray-500 mt-2"></p>
             </div>
         </section>
 
-        <!-- ABA 2: INSERÇÃO DE DADOS (Só aparece via link) -->
+        <!-- ABA 2: INSERÇÃO -->
         <section id="tab-input" class="hidden">
             <div class="bg-white p-4 md:p-6 rounded-lg shadow max-w-4xl mx-auto border-t-8 border-red-700">
                 <div id="lock-warning" class="mb-4 p-3 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 text-xs font-bold uppercase flex items-center gap-2">
-                    🔒 <span id="locked-unit-name">Unidade Identificada</span>
+                    🔒 <span id="locked-unit-name">Unidade</span>
                 </div>
                 
                 <div class="flex justify-between items-center mb-6 border-b pb-4">
                     <h2 class="text-lg md:text-xl font-bold text-red-700 uppercase tracking-wide italic">Reporte Diário</h2>
-                    <button onclick="exitUnitMode()" id="btn-exit-unit" class="text-[10px] bg-gray-200 px-3 py-1 rounded uppercase font-bold hover:bg-gray-300 transition-colors">⬅ Painel</button>
+                    <button onclick="exitUnitMode()" class="text-[10px] bg-gray-200 px-3 py-1 rounded uppercase font-bold hover:bg-gray-300">⬅ Painel</button>
                 </div>
                 
-                <!-- Unidade FIXA (não editável) -->
                 <div class="mb-6 p-3 bg-blue-50 rounded border border-blue-200">
-                    <label class="block text-[10px] font-bold mb-1 text-blue-800 uppercase">Unidade Operacional:</label>
-                    <p id="display-unidade" class="text-base md:text-lg font-black text-blue-900">Carregando...</p>
+                    <label class="block text-[10px] font-bold mb-1 text-blue-800 uppercase">Unidade:</label>
+                    <p id="display-unidade" class="text-base md:text-lg font-black text-blue-900">...</p>
                     <input type="hidden" id="form-unidade">
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6">
                     <div>
-                        <label class="block text-sm font-bold mb-2 text-gray-700 uppercase">Efetivo Pronto:</label>
-                        <input type="number" id="form-efetivo" class="w-full p-2.5 border-2 border-gray-200 rounded" placeholder="Ex: 14" min="0">
+                        <label class="block text-sm font-bold mb-2 text-gray-700 uppercase">Efetivo:</label>
+                        <input type="number" id="form-efetivo" class="w-full p-2.5 border-2 border-gray-200 rounded" min="0">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold mb-2 text-gray-700 uppercase">Oficial / Adjunto:</label>
-                        <input type="text" id="form-oficial-nome" class="w-full p-2.5 border-2 border-gray-200 rounded" placeholder="Ex: 1º Ten Júnior">
+                        <label class="block text-sm font-bold mb-2 text-gray-700 uppercase">Oficial:</label>
+                        <input type="text" id="form-oficial-nome" class="w-full p-2.5 border-2 border-gray-200 rounded">
                     </div>
                     <div>
                         <label class="block text-sm font-bold mb-2 text-gray-700 uppercase">Contato:</label>
-                        <input type="text" id="form-oficial-contato" class="w-full p-2.5 border-2 border-gray-200 rounded" placeholder="(62) 98425-3011">
+                        <input type="text" id="form-oficial-contato" class="w-full p-2.5 border-2 border-gray-200 rounded">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold mb-2 text-gray-700 uppercase">Viaturas Prontas:</label>
-                        <textarea id="form-vtr-ativas" class="w-full p-2 border-2 border-blue-100 rounded h-16 text-sm italic" placeholder="Prefixos..."></textarea>
+                        <label class="block text-sm font-bold mb-2 text-gray-700 uppercase">Viaturas:</label>
+                        <textarea id="form-vtr-ativas" class="w-full p-2 border-2 border-blue-100 rounded h-16 text-sm"></textarea>
                     </div>
                 </div>
 
-                <h3 class="font-black text-blue-900 mb-4 text-[11px] uppercase flex items-center gap-2">
-                    <span class="bg-blue-900 text-white px-2 py-0.5 rounded">Estatística</span> Ocorrências Atendidas
-                </h3>
-                <div class="grid grid-cols-3 md:grid-cols-6 gap-3 md:gap-4 mb-6 bg-blue-50 p-3 md:p-4 rounded-lg">
-                    <div><label class="block text-[9px] md:text-[10px] font-bold uppercase mb-1">RES</label><input type="number" id="oc-resgate" class="input-number-sm font-bold" value="0" min="0"></div>
-                    <div><label class="block text-[9px] md:text-[10px] font-bold uppercase mb-1">URB</label><input type="number" id="oc-urbano" class="input-number-sm font-bold" value="0" min="0"></div>
-                    <div><label class="block text-[9px] md:text-[10px] font-bold uppercase mb-1">VEG</label><input type="number" id="oc-veg" class="input-number-sm font-bold" value="0" min="0"></div>
-                    <div><label class="block text-[9px] md:text-[10px] font-bold uppercase mb-1">SALV</label><input type="number" id="oc-busca" class="input-number-sm font-bold" value="0" min="0"></div>
-                    <div><label class="block text-[9px] md:text-[10px] font-bold uppercase mb-1">PREV</label><input type="number" id="oc-prev" class="input-number-sm font-bold" value="0" min="0"></div>
-                    <div><label class="block text-[9px] md:text-[10px] font-bold uppercase mb-1">OUT</label><input type="number" id="oc-outras" class="input-number-sm font-bold" value="0" min="0"></div>
+                <h3 class="font-black text-blue-900 mb-4 text-[11px] uppercase">📊 Ocorrências</h3>
+                <div class="grid grid-cols-3 md:grid-cols-6 gap-3 mb-6 bg-blue-50 p-3 rounded-lg">
+                    <div><label class="block text-[9px] font-bold uppercase mb-1">RES</label><input type="number" id="oc-resgate" class="input-number-sm" value="0" min="0"></div>
+                    <div><label class="block text-[9px] font-bold uppercase mb-1">URB</label><input type="number" id="oc-urbano" class="input-number-sm" value="0" min="0"></div>
+                    <div><label class="block text-[9px] font-bold uppercase mb-1">VEG</label><input type="number" id="oc-veg" class="input-number-sm" value="0" min="0"></div>
+                    <div><label class="block text-[9px] font-bold uppercase mb-1">SALV</label><input type="number" id="oc-busca" class="input-number-sm" value="0" min="0"></div>
+                    <div><label class="block text-[9px] font-bold uppercase mb-1">PREV</label><input type="number" id="oc-prev" class="input-number-sm" value="0" min="0"></div>
+                    <div><label class="block text-[9px] font-bold uppercase mb-1">OUT</label><input type="number" id="oc-outras" class="input-number-sm" value="0" min="0"></div>
                 </div>
 
                 <div class="mb-6">
-                    <label class="block text-sm font-bold mb-1 text-red-600 uppercase">Baixas e Motivos:</label>
-                    <textarea id="form-baixas" class="w-full p-2 border-2 border-red-100 rounded h-16 text-sm italic" placeholder="Prefixos e motivo da baixa..."></textarea>
+                    <label class="block text-sm font-bold mb-1 text-red-600 uppercase">Baixas:</label>
+                    <textarea id="form-baixas" class="w-full p-2 border-2 border-red-100 rounded h-16 text-sm"></textarea>
                 </div>
 
-                <button onclick="saveData()" id="btn-save" class="w-full bg-red-700 hover:bg-red-800 text-white font-black py-4 rounded-lg shadow-xl transition-all uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed">
-                    📤 Enviar Dados ao 8º CRBM
+                <button onclick="saveData()" id="btn-save" class="w-full bg-red-700 hover:bg-red-800 text-white font-black py-4 rounded-lg shadow-xl uppercase disabled:opacity-50">
+                    📤 Enviar
                 </button>
-                <p id="save-status" class="text-center text-xs mt-3 font-bold min-h-[1.25rem]"></p>
+                <p id="save-status" class="text-center text-xs mt-3 font-bold"></p>
             </div>
         </section>
 
-        <!-- ABA 3: GERADOR DE LINKS (Protegido por senha) -->
+        <!-- ABA 3: LINKS -->
         <section id="tab-links" class="hidden">
             <div class="bg-white p-4 md:p-6 rounded-lg shadow max-w-4xl mx-auto border-t-8 border-blue-700">
-                <h2 class="text-lg md:text-xl font-bold text-blue-800 mb-4 uppercase italic">🔗 Links de Distribuição</h2>
-                <div class="bg-blue-50 border-l-4 border-blue-500 p-3 mb-6">
-                    <p class="text-[11px] text-blue-800 font-bold uppercase italic mb-1">Como usar:</p>
-                    <p class="text-xs text-blue-700 leading-relaxed">
-                        1. Clique em <b>"Copiar Link"</b> e envie para o WhatsApp da unidade.<br>
-                        2. Ao acessar, a unidade verá apenas o formulário com sua unidade já selecionada.<br>
-                        3. Os dados serão salvos automaticamente na planilha central.
-                    </p>
-                </div>
-                
-                <div class="space-y-3" id="link-list-container">
-                    <!-- Gerado dinamicamente -->
-                </div>
-
+                <h2 class="text-lg md:text-xl font-bold text-blue-800 mb-4 uppercase">🔗 Links por Unidade</h2>
+                <div class="space-y-3" id="link-list-container"></div>
                 <div class="mt-8 p-4 bg-gray-100 rounded border-l-4 border-gray-400">
-                    <h3 class="font-bold text-sm uppercase mb-2">🎖️ Acesso do Comando:</h3>
+                    <h3 class="font-bold text-sm uppercase mb-2">Acesso Comando:</h3>
                     <div class="flex gap-2">
-                        <input type="text" id="admin-link-field" readonly class="w-full p-2 bg-white border rounded text-[10px] font-mono text-gray-500">
-                        <button onclick="copyToClipboard('admin-link-field')" class="bg-gray-800 text-white px-4 py-2 rounded text-[10px] font-bold uppercase shrink-0 hover:bg-gray-900 transition-colors">Copiar</button>
+                        <input type="text" id="admin-link-field" readonly class="w-full p-2 bg-white border rounded text-[10px] font-mono">
+                        <button onclick="copyToClipboard('admin-link-field')" class="bg-gray-800 text-white px-4 py-2 rounded text-[10px] font-bold uppercase">Copiar</button>
                     </div>
                 </div>
             </div>
@@ -226,14 +217,10 @@
     </main>
 
     <script>
-        // ============================================================
-        // ⚙️ CONFIGURAÇÕES GERAIS - EDITE AQUI
-        // ============================================================
-        
-        const LINKS_PASSWORD = "cbmgo193";  // 🔑 SENHA - ALTERE AQUI
+        // ⚙️ CONFIGURAÇÕES
+        const LINKS_PASSWORD = "cbmgo193";
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzB_ZOh57vlXnIScLwDVsTHXtlkJ3AdBnzZPjvaJHiPBzrnzdH8MxTAhxGkJFKNzEU/exec";
         
-        // 🗂️ MAPEAMENTO: UNIDADE → LINHA NA PLANILHA
         const UNIT_MAPPING = {
             "11º BBM/Porangatu": { row: 2, slug: "Porangatu" },
             "18º BBM/Goianésia": { row: 3, slug: "Goianesia" },
@@ -244,31 +231,20 @@
             "DBM de Barro Alto": { row: 8, slug: "Barro" }
         };
         
-        // 📊 MAPEAMENTO: CAMPO → COLUNA NA PLANILHA
-        const COL = {
-            NOME: 1, EFETIVO: 2, VTRS: 3, BAIXAS: 4, OFICIAL: 5, CONTATO: 6,
-            RES: 7, URB: 8, VEG: 9, SALV: 10, PREV: 11, OUT: 12, SOMA: 13, DATA: 14
-        };
+        const COL = { NOME: 1, EFETIVO: 2, VTRS: 3, BAIXAS: 4, OFICIAL: 5, CONTATO: 6, RES: 7, URB: 8, VEG: 9, SALV: 10, PREV: 11, OUT: 12, SOMA: 13, DATA: 14 };
 
-        // ============================================================
-        // 🧠 ESTADO GLOBAL
-        // ============================================================
-        
         let currentUnit = null;
         let linksUnlocked = false;
         let cachedData = null;
         let lastLoadTime = null;
+        let lastError = null;
 
-        // ============================================================
         // 🚀 INICIALIZAÇÃO
-        // ============================================================
-        
         document.addEventListener('DOMContentLoaded', () => {
             updateClock();
             setInterval(updateClock, 1000);
             checkUrlUnitParam();
             
-            // 🔒 Se estiver em modo unidade, esconde aba de links
             if (currentUnit) {
                 document.getElementById('btn-links')?.classList.add('hidden');
                 document.getElementById('btn-input')?.classList.remove('hidden');
@@ -279,337 +255,230 @@
                 loadDashboard();
             }
             
-            setTimeout(() => {
-                document.getElementById('loader').style.display = 'none';
-            }, 1200);
+            setTimeout(() => { document.getElementById('loader').style.display = 'none'; }, 1200);
         });
 
         function updateClock() {
             const now = new Date();
-            document.getElementById('current-date').innerText = 
-                now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR');
+            document.getElementById('current-date').innerText = now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR');
         }
 
-        // ============================================================
-        // 🔐 CONTROLE DE ACESSO - GERADOR DE LINKS
-        // ============================================================
-        
+        // 🔐 SENHA
         function checkLinksAccess() {
-            // Se já estiver desbloqueado, vai direto
-            if (linksUnlocked) {
-                switchTab('links');
-                generateLinksUI();
-                return;
-            }
-            // Mostra modal de senha
+            if (linksUnlocked) { switchTab('links'); generateLinksUI(); return; }
             document.getElementById('password-modal').classList.remove('hidden');
             document.getElementById('password-input').value = '';
             document.getElementById('password-error').classList.add('hidden');
             setTimeout(() => document.getElementById('password-input').focus(), 100);
         }
 
-        function closePasswordModal() {
-            document.getElementById('password-modal').classList.add('hidden');
-        }
+        function closePasswordModal() { document.getElementById('password-modal').classList.add('hidden'); }
 
         function checkPassword() {
-            const input = document.getElementById('password-input').value.trim();
-            if (input === LINKS_PASSWORD) {
+            if (document.getElementById('password-input').value.trim() === LINKS_PASSWORD) {
                 linksUnlocked = true;
                 closePasswordModal();
                 switchTab('links');
                 generateLinksUI();
             } else {
-                const errorEl = document.getElementById('password-error');
-                errorEl.classList.remove('hidden');
+                document.getElementById('password-error').classList.remove('hidden');
                 document.getElementById('password-input').value = '';
                 document.getElementById('password-input').focus();
-                // Remove animação e readiciona para reiniciar
-                errorEl.classList.remove('animate-pulse');
-                void errorEl.offsetWidth;
-                errorEl.classList.add('animate-pulse');
             }
         }
 
-        document.getElementById('password-input')?.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') checkPassword();
-        });
+        document.getElementById('password-input')?.addEventListener('keypress', (e) => { if (e.key === 'Enter') checkPassword(); });
 
-        // Fechar modal ao clicar fora
-        document.getElementById('password-modal')?.addEventListener('click', (e) => {
-            if (e.target.id === 'password-modal') closePasswordModal();
-        });
-
-        // ============================================================
-        // 🔗 PARÂMETROS DE URL - DETECÇÃO DE UNIDADE
-        // ============================================================
-        
+        // 🔗 URL PARAMS
         function checkUrlUnitParam() {
-            const params = new URLSearchParams(window.location.search);
-            const slug = params.get('unidade');
+            const slug = new URLSearchParams(window.location.search).get('unidade');
             if (slug) {
                 for (const [name, config] of Object.entries(UNIT_MAPPING)) {
-                    if (config.slug.toLowerCase() === slug.toLowerCase()) {
-                        currentUnit = name;
-                        break;
-                    }
+                    if (config.slug.toLowerCase() === slug.toLowerCase()) { currentUnit = name; break; }
                 }
             }
         }
 
         function setupUnitForm() {
             if (!currentUnit || !UNIT_MAPPING[currentUnit]) {
-                alert("⚠️ Unidade não identificada no link.");
+                alert("⚠️ Unidade não identificada.");
                 currentUnit = null;
                 switchTab('dashboard');
                 return;
             }
-            
             document.getElementById('form-unidade').value = currentUnit;
             document.getElementById('display-unidade').innerText = currentUnit;
             document.getElementById('locked-unit-name').innerText = currentUnit;
-            
-            // Garante que a aba de inserção esteja visível
             document.getElementById('btn-input')?.classList.remove('hidden');
-            
-            // Carrega dados existentes para edição
             loadUnitData(currentUnit);
         }
 
         function exitUnitMode() {
             currentUnit = null;
-            // Remove parâmetro da URL sem recarregar
-            const newUrl = window.location.pathname;
-            window.history.replaceState({}, document.title, newUrl);
-            
-            // Mostra aba de links novamente (se desbloqueada)
-            if (linksUnlocked) {
-                document.getElementById('btn-links')?.classList.remove('hidden');
-            }
+            window.history.replaceState({}, document.title, window.location.pathname);
+            if (linksUnlocked) document.getElementById('btn-links')?.classList.remove('hidden');
             document.getElementById('btn-input')?.classList.add('hidden');
-            
             switchTab('dashboard');
             loadDashboard();
         }
 
-        // ============================================================
-        // 🔄 NAVEGAÇÃO ENTRE ABAS
-        // ============================================================
-        
+        // 🔄 TABS
         function switchTab(tabName) {
-            // Esconde todas as abas e remove active dos botões
             ['dashboard', 'input', 'links'].forEach(t => {
                 document.getElementById('tab-' + t)?.classList.add('hidden');
                 document.getElementById('btn-' + t)?.classList.remove('tab-active');
             });
-            // Mostra a selecionada e ativa o botão
             document.getElementById('tab-' + tabName)?.classList.remove('hidden');
             document.getElementById('btn-' + tabName)?.classList.add('tab-active');
-            
-            // 🚀 Se voltar para dashboard e dados estiverem velhos, recarrega
-            if (tabName === 'dashboard' && (!cachedData || Date.now() - lastLoadTime > 30000)) {
-                loadDashboard();
-            }
+            if (tabName === 'dashboard' && (!cachedData || Date.now() - lastLoadTime > 30000)) loadDashboard();
         }
 
-        // ============================================================
-        // 📋 UTILITÁRIOS
-        // ============================================================
-        
-        function copyToClipboard(elementId) {
-            const el = document.getElementById(elementId);
+        function copyToClipboard(id) {
+            const el = document.getElementById(id);
             if (!el) return;
             el.select();
-            el.setSelectionRange(0, 99999);
-            try {
-                document.execCommand('copy');
-                // Feedback visual
-                const original = el.title || '';
-                el.title = "✅ Copiado!";
-                setTimeout(() => { el.title = original; }, 1500);
-            } catch (err) {
-                console.error('Erro ao copiar:', err);
-            }
+            document.execCommand('copy');
         }
 
         function generateLinksUI() {
             const container = document.getElementById('link-list-container');
             const baseUrl = window.location.href.split('?')[0].replace(/\/$/, '');
-            
             document.getElementById('admin-link-field').value = baseUrl;
             container.innerHTML = '';
-
-            Object.entries(UNIT_MAPPING).forEach(([unitName, config], index) => {
-                const unitLink = `${baseUrl}?unidade=${config.slug}`;
-                const div = document.createElement('div');
-                div.className = "p-4 bg-white border border-gray-200 rounded-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-sm hover:border-blue-400 hover:shadow-md transition-all";
-                div.innerHTML = `
-                    <div class="flex-1 min-w-0">
-                        <span class="block text-xs font-black text-gray-800 uppercase tracking-tight mb-1">${unitName}</span>
-                        <input type="text" id="link-${index}" readonly value="${unitLink}" 
-                            class="w-full bg-gray-50 text-[10px] text-blue-600 font-mono p-2 rounded border border-gray-200 focus:outline-none focus:border-blue-400 truncate"
-                            title="Clique para copiar">
-                    </div>
-                    <div class="flex gap-2 w-full md:w-auto">
-                        <button onclick="copyToClipboard('link-${index}')" 
-                            class="flex-1 md:flex-none bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-[10px] font-bold uppercase transition-all shadow hover:shadow-md">
-                            📋 Copiar
-                        </button>
-                    </div>
-                `;
-                container.appendChild(div);
+            Object.entries(UNIT_MAPPING).forEach(([name, config], i) => {
+                const link = `${baseUrl}?unidade=${config.slug}`;
+                container.innerHTML += `
+                    <div class="p-4 bg-white border rounded-lg flex justify-between items-center gap-3">
+                        <div class="flex-1">
+                            <span class="block text-xs font-bold">${name}</span>
+                            <input readonly value="${link}" class="w-full text-[10px] font-mono bg-gray-50 p-2 rounded">
+                        </div>
+                        <button onclick="copyToClipboard('link-${i}')" class="bg-blue-600 text-white px-4 py-2 rounded text-xs font-bold">Copiar</button>
+                    </div>`;
             });
         }
 
-        // ============================================================
-        // 📡 COMUNICAÇÃO COM GOOGLE APPS SCRIPT
-        // ============================================================
-        
+        // 📡 APPS SCRIPT
         async function callScript(action, params = {}) {
             const url = new URL(SCRIPT_URL);
             url.searchParams.append('acao', action);
-            Object.entries(params).forEach(([key, value]) => {
-                if (value !== null && value !== undefined && value !== '') {
-                    url.searchParams.append(key, value);
-                }
-            });
+            Object.entries(params).forEach(([k, v]) => { if (v !== null && v !== undefined && v !== '') url.searchParams.append(k, v); });
             
             try {
-                const response = await fetch(url.toString(), { 
-                    method: 'GET', 
-                    redirect: 'follow',
-                    cache: 'no-store'
-                });
+                const response = await fetch(url.toString(), { method: 'GET', redirect: 'follow' });
                 return await response.json();
             } catch (error) {
-                console.error('❌ Erro na chamada do script:', error);
-                return { sucesso: false, mensagem: 'Erro de conexão: ' + error.message };
+                return { sucesso: false, mensagem: 'Erro de conexão: ' + error.message, raw: error };
             }
         }
 
-        // ============================================================
-        // 🚀 CARREGAMENTO RÁPIDO DO DASHBOARD (LEITURA EM MASSA)
-        // ============================================================
-        
+        // 🚀 DASHBOARD
         async function loadDashboard() {
             const tbody = document.getElementById('consolidated-body');
             const statusEl = document.getElementById('dashboard-status');
+            const debugContainer = document.getElementById('debug-container');
+            const debugPanel = document.getElementById('debug-panel');
             
-            // Estado de carregamento
-            tbody.innerHTML = '<tr><td colspan="12" class="p-4 text-center text-blue-600 font-bold"><div class="animate-pulse">🔄 Sincronizando com planilha...</div></td></tr>';
+            tbody.innerHTML = '<tr><td colspan="12" class="p-4 text-center"><div class="animate-pulse">🔄 Carregando...</div></td></tr>';
+            debugContainer.classList.add('hidden');
             statusEl.innerText = '';
             
             try {
-                // 🚀 CHAMADA ÚNICA: ler-tudo
+                console.log('📡 Chamando script...');
                 const result = await callScript('ler-tudo');
+                console.log('📥 Resposta:', result);
                 
-                if (!result.sucesso || !result.dados?.unidades) {
-                    throw new Error(result.mensagem || 'Falha ao carregar dados da planilha');
+                if (!result.sucesso) {
+                    throw new Error(result.mensagem || 'Falha na resposta do script');
                 }
                 
-                // Cache para reutilização
+                if (!result.dados?.unidades || result.dados.unidades.length === 0) {
+                    throw new Error('Nenhuma unidade encontrada. Verifique se há dados na planilha.');
+                }
+                
                 cachedData = result.dados.unidades;
                 lastLoadTime = Date.now();
+                lastError = null;
                 
-                // Renderiza
                 renderDashboardTable(cachedData);
                 updateStatsCards(cachedData);
                 
                 document.getElementById('stat-ultima-att').innerText = new Date().toLocaleTimeString('pt-BR');
-                statusEl.innerText = `✅ Atualizado há pouco • ${cachedData.length} unidades`;
+                statusEl.innerText = `✅ ${cachedData.length} unidades • ${new Date().toLocaleTimeString('pt-BR')}`;
                 statusEl.className = 'text-[10px] text-green-600 mt-2 font-medium';
                 
             } catch (error) {
-                console.error('Erro no loadDashboard:', error);
+                console.error('❌ Erro:', error);
+                lastError = error;
+                
                 tbody.innerHTML = `<tr><td colspan="12" class="p-4 text-center">
-                    <div class="text-red-600 font-bold mb-2">❌ Não foi possível carregar os dados</div>
+                    <div class="text-red-600 font-bold mb-2">❌ Erro ao carregar dados</div>
                     <div class="text-xs text-gray-500 mb-3">${error.message}</div>
-                    <button onclick="loadDashboard()" class="bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded text-xs font-bold uppercase transition-colors">🔄 Tentar novamente</button>
+                    <button onclick="loadDashboard()" class="bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded text-xs font-bold">🔄 Tentar novamente</button>
                 </td></tr>`;
+                
+                // Mostra painel de debug
+                debugPanel.innerHTML = `<strong>Erro:</strong> ${error.message}<br><strong>Timestamp:</strong> ${new Date().toISOString()}<br><strong>Script URL:</strong> ${SCRIPT_URL}<br><strong>Cache:</strong> ${cachedData ? 'Sim' : 'Não'}<br><strong>Unidades esperadas:</strong> ${Object.keys(UNIT_MAPPING).length}`;
+                debugContainer.classList.remove('hidden');
+                
                 statusEl.innerText = '⚠️ Erro de sincronização';
                 statusEl.className = 'text-[10px] text-red-600 mt-2 font-bold';
             }
+        }
+
+        function toggleDebug() {
+            document.getElementById('debug-panel').classList.toggle('hidden');
         }
 
         function renderDashboardTable(unidades) {
             const tbody = document.getElementById('consolidated-body');
             tbody.innerHTML = '';
             
-            if (!unidades || unidades.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="12" class="p-4 text-center text-gray-500 text-sm">Nenhuma unidade encontrada na planilha</td></tr>';
-                return;
-            }
-            
             unidades.forEach(unit => {
                 const d = unit.dados || {};
                 const efetivo = parseInt(d.efetivo) || 0;
-                const efetivoClass = (efetivo < 8 && efetivo > 0) ? 'text-red-600 bg-red-50 font-black' : 'text-blue-700 font-bold';
-                const baixas = d.baixas || '-';
-                const baixasClass = (baixas && baixas !== 'Nenhuma' && baixas !== '-') ? 'text-red-700 font-bold bg-red-50' : 'text-gray-500';
-                const occ = d.ocorrencias || {};
-                
                 const tr = document.createElement('tr');
-                tr.className = "border-b hover:bg-gray-50 transition-colors";
+                tr.className = "border-b hover:bg-gray-50";
                 tr.innerHTML = `
-                    <td class="p-2 md:p-3 font-bold border-r text-gray-700 text-[11px] md:text-sm">${unit.unidade}</td>
-                    <td class="p-2 md:p-3 text-center border-r ${efetivoClass}">${efetivo}</td>
-                    <td class="p-2 md:p-3 text-[10px] md:text-[11px] border-r italic text-gray-600 hidden md:table-cell">${d.vtrAtivas || '-'}</td>
-                    <td class="p-2 md:p-3 text-[10px] md:text-[11px] border-r ${baixasClass}">${baixas.length > 12 ? baixas.substring(0,12)+'...' : baixas}</td>
-                    <td class="td-small text-[10px]">${occ.resgate || 0}</td>
-                    <td class="td-small text-[10px]">${occ.urbano || 0}</td>
-                    <td class="td-small text-[10px]">${occ.veg || 0}</td>
-                    <td class="td-small text-[10px]">${occ.busca || 0}</td>
-                    <td class="td-small text-[10px]">${occ.prev || 0}</td>
-                    <td class="td-small bg-blue-50 font-black border-r border-l text-blue-900">${d.soma || 0}</td>
-                    <td class="p-2 text-center bg-gray-50">
-                        <div class="font-bold text-[10px] md:text-[11px]">${d.oficialNome || '-'}</div>
-                        <div class="text-[9px] text-blue-600">${d.oficialContato || '-'}</div>
-                    </td>
+                    <td class="p-2 md:p-3 font-bold border-r">${unit.unidade}</td>
+                    <td class="p-2 md:p-3 text-center border-r ${efetivo < 8 ? 'text-red-600 font-black' : 'text-blue-700 font-bold'}">${efetivo}</td>
+                    <td class="p-2 md:p-3 text-[10px] border-r italic hidden md:table-cell">${d.vtrAtivas || '-'}</td>
+                    <td class="p-2 md:p-3 text-[10px] border-r ${(d.baixas && d.baixas !== '-' && d.baixas !== 'Nenhuma') ? 'text-red-700 font-bold' : 'text-gray-500'}">${d.baixas || '-'}</td>
+                    <td class="td-small">${(d.ocorrencias?.resgate) || 0}</td>
+                    <td class="td-small">${(d.ocorrencias?.urbano) || 0}</td>
+                    <td class="td-small">${(d.ocorrencias?.veg) || 0}</td>
+                    <td class="td-small">${(d.ocorrencias?.busca) || 0}</td>
+                    <td class="td-small">${(d.ocorrencias?.prev) || 0}</td>
+                    <td class="td-small bg-blue-50 font-black border-r border-l">${d.soma || 0}</td>
+                    <td class="p-2 text-center bg-gray-50"><div class="font-bold text-[10px]">${d.oficialNome || '-'}</div><div class="text-[9px] text-blue-600">${d.oficialContato || '-'}</div></td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
         function updateStatsCards(unidades) {
-            let totalEfetivo = 0, totalOcorrencias = 0, unidadesPendentes = 0;
-            
-            unidades.forEach(unit => {
-                const d = unit.dados || {};
-                totalEfetivo += parseInt(d.efetivo) || 0;
-                totalOcorrencias += parseInt(d.soma) || 0;
-                if (d.baixas && d.baixas !== 'Nenhuma' && d.baixas !== '-' && d.baixas.toString().trim()) {
-                    unidadesPendentes++;
-                }
+            let totalEf = 0, totalOc = 0, pend = 0;
+            unidades.forEach(u => {
+                const d = u.dados || {};
+                totalEf += parseInt(d.efetivo) || 0;
+                totalOc += parseInt(d.soma) || 0;
+                if (d.baixas && d.baixas !== 'Nenhuma' && d.baixas !== '-') pend++;
             });
-            
-            document.getElementById('stat-efetivo-total').innerText = totalEfetivo;
-            document.getElementById('stat-ocorrencias').innerText = totalOcorrencias;
-            document.getElementById('stat-pendencias').innerText = unidadesPendentes;
+            document.getElementById('stat-efetivo-total').innerText = totalEf;
+            document.getElementById('stat-ocorrencias').innerText = totalOc;
+            document.getElementById('stat-pendencias').innerText = pend;
         }
 
-        // ============================================================
-        // 💾 SALVAR DADOS - FORMULÁRIO DA UNIDADE
-        // ============================================================
-        
+        // 💾 SALVAR
         async function saveData() {
-            if (!currentUnit) {
-                alert("⚠️ Unidade não identificada!");
-                return;
-            }
+            if (!currentUnit) { alert("Unidade não identificada!"); return; }
             
             const btn = document.getElementById('btn-save');
             const status = document.getElementById('save-status');
             const row = UNIT_MAPPING[currentUnit].row;
             
-            // Helpers para pegar valores
-            const getNum = (id) => {
-                const val = document.getElementById(id)?.value;
-                return val !== '' ? parseInt(val) || 0 : 0;
-            };
-            const getText = (id) => {
-                const val = document.getElementById(id)?.value?.trim();
-                return val && val !== '' ? val : '-';
-            };
+            const getNum = (id) => parseInt(document.getElementById(id)?.value) || 0;
+            const getText = (id) => document.getElementById(id)?.value?.trim() || '-';
             
             const dados = {
                 efetivo: getNum('form-efetivo'),
@@ -617,25 +486,16 @@
                 baixas: getText('form-baixas'),
                 oficialNome: getText('form-oficial-nome'),
                 oficialContato: getText('form-oficial-contato'),
-                resgate: getNum('oc-resgate'),
-                urbano: getNum('oc-urbano'),
-                veg: getNum('oc-veg'),
-                busca: getNum('oc-busca'),
-                prev: getNum('oc-prev'),
-                outras: getNum('oc-outras')
+                resgate: getNum('oc-resgate'), urbano: getNum('oc-urbano'), veg: getNum('oc-veg'),
+                busca: getNum('oc-busca'), prev: getNum('oc-prev'), outras: getNum('oc-outras')
             };
             dados.soma = dados.resgate + dados.urbano + dados.veg + dados.busca + dados.prev + dados.outras;
-            dados.updatedAt = new Date().toLocaleString('pt-BR');
             
-            // UI de envio
-            const originalBtnText = btn.innerHTML;
             btn.disabled = true;
             btn.innerHTML = '⏳ ENVIANDO...';
-            status.innerText = 'Conectando...';
-            status.className = 'text-center text-xs mt-3 font-bold text-blue-600';
+            status.innerText = '';
             
             try {
-                // Envia todos os campos em paralelo
                 const writes = [
                     callScript('gravar', { linha: row, coluna: COL.EFETIVO, valor: dados.efetivo }),
                     callScript('gravar', { linha: row, coluna: COL.VTRS, valor: dados.vtrAtivas }),
@@ -649,110 +509,63 @@
                     callScript('gravar', { linha: row, coluna: COL.PREV, valor: dados.prev }),
                     callScript('gravar', { linha: row, coluna: COL.OUT, valor: dados.outras }),
                     callScript('gravar', { linha: row, coluna: COL.SOMA, valor: dados.soma }),
-                    callScript('gravar', { linha: row, coluna: COL.DATA, valor: dados.updatedAt })
+                    callScript('gravar', { linha: row, coluna: COL.DATA, valor: new Date().toLocaleString('pt-BR') })
                 ];
                 
-                const results = await Promise.all(writes);
-                
-                // Verifica se algum falhou
-                const failed = results.filter(r => !r.sucesso);
-                if (failed.length > 0) {
-                    throw new Error(`${failed.length} campo(s) não foram gravados`);
-                }
-                
-                // 🚀 Invalida cache para forçar atualização no dashboard
+                await Promise.all(writes);
                 cachedData = null;
-                
-                status.innerText = '✅ Dados enviados com sucesso!';
-                status.className = 'text-center text-xs mt-3 font-bold text-green-600 animate-pulse';
-                
-                // Se o dashboard estiver visível, recarrega
-                if (!document.getElementById('tab-dashboard').classList.contains('hidden')) {
-                    setTimeout(() => loadDashboard(), 500);
-                }
+                status.innerText = '✅ Enviado com sucesso!';
+                status.className = 'text-center text-xs mt-3 font-bold text-green-600';
                 
             } catch (error) {
-                console.error('Erro ao salvar:', error);
-                status.innerText = `❌ Erro: ${error.message}`;
+                status.innerText = '❌ Erro: ' + error.message;
                 status.className = 'text-center text-xs mt-3 font-bold text-red-600';
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = originalBtnText;
-                // Remove animação do status após 3s
-                setTimeout(() => {
-                    if (status.classList.contains('animate-pulse')) {
-                        status.classList.remove('animate-pulse');
-                    }
-                }, 3000);
+                btn.innerHTML = '📤 Enviar';
             }
         }
 
-        // ============================================================
-        // 📖 CARREGAR DADOS DE UMA UNIDADE (PARA EDIÇÃO)
-        // ============================================================
-        
+        // 📖 CARREGAR UNIDADE
         async function loadUnitData(unitName) {
-            // 🚀 Tenta usar cache se disponível e recente (< 1 minuto)
             if (cachedData && lastLoadTime && (Date.now() - lastLoadTime < 60000)) {
                 const cached = cachedData.find(u => u.unidade === unitName);
-                if (cached?.dados) {
-                    fillFormFromData(cached.dados);
-                    return;
-                }
+                if (cached?.dados) { fillFormFromData(cached.dados); return; }
             }
             
-            // Fallback: leitura individual campo a campo
             const row = UNIT_MAPPING[unitName].row;
             const fields = [
-                { col: COL.EFETIVO, id: 'form-efetivo', type: 'number' },
-                { col: COL.VTRS, id: 'form-vtr-ativas', type: 'text' },
-                { col: COL.BAIXAS, id: 'form-baixas', type: 'text' },
-                { col: COL.OFICIAL, id: 'form-oficial-nome', type: 'text' },
-                { col: COL.CONTATO, id: 'form-oficial-contato', type: 'text' },
-                { col: COL.RES, id: 'oc-resgate', type: 'number' },
-                { col: COL.URB, id: 'oc-urbano', type: 'number' },
-                { col: COL.VEG, id: 'oc-veg', type: 'number' },
-                { col: COL.SALV, id: 'oc-busca', type: 'number' },
-                { col: COL.PREV, id: 'oc-prev', type: 'number' },
-                { col: COL.OUT, id: 'oc-outras', type: 'number' }
+                { col: COL.EFETIVO, id: 'form-efetivo' }, { col: COL.VTRS, id: 'form-vtr-ativas' },
+                { col: COL.BAIXAS, id: 'form-baixas' }, { col: COL.OFICIAL, id: 'form-oficial-nome' },
+                { col: COL.CONTATO, id: 'form-oficial-contato' }, { col: COL.RES, id: 'oc-resgate' },
+                { col: COL.URB, id: 'oc-urbano' }, { col: COL.VEG, id: 'oc-veg' },
+                { col: COL.SALV, id: 'oc-busca' }, { col: COL.PREV, id: 'oc-prev' },
+                { col: COL.OUT, id: 'oc-outras' }
             ];
             
-            for (const field of fields) {
+            for (const f of fields) {
                 try {
-                    const result = await callScript('ler', { linha: row, coluna: field.col });
-                    if (result.sucesso && result.dados?.conteudo !== null && result.dados?.conteudo !== undefined) {
-                        const el = document.getElementById(field.id);
-                        if (el) {
-                            el.value = field.type === 'number' ? (parseInt(result.dados.conteudo) || 0) : result.dados.conteudo;
-                        }
-                    }
-                } catch (e) {
-                    console.warn(`⚠️ Não foi possível carregar ${field.id}:`, e);
-                }
+                    const r = await callScript('ler', { linha: row, coluna: f.col });
+                    if (r.sucesso && r.dados?.conteudo !== null) document.getElementById(f.id).value = r.dados.conteudo;
+                } catch (e) { console.warn(e); }
             }
         }
 
         function fillFormFromData(data) {
             if (!data) return;
-            
-            const setVal = (id, val) => {
-                const el = document.getElementById(id);
-                if (el && val !== undefined && val !== null) el.value = val;
-            };
-            
-            setVal('form-efetivo', data.efetivo);
-            setVal('form-vtr-ativas', data.vtrAtivas);
-            setVal('form-baixas', data.baixas);
-            setVal('form-oficial-nome', data.oficialNome);
-            setVal('form-oficial-contato', data.oficialContato);
-            
+            const set = (id, v) => { const el = document.getElementById(id); if (el && v !== undefined) el.value = v; };
+            set('form-efetivo', data.efetivo);
+            set('form-vtr-ativas', data.vtrAtivas);
+            set('form-baixas', data.baixas);
+            set('form-oficial-nome', data.oficialNome);
+            set('form-oficial-contato', data.oficialContato);
             if (data.ocorrencias) {
-                setVal('oc-resgate', data.ocorrencias.resgate);
-                setVal('oc-urbano', data.ocorrencias.urbano);
-                setVal('oc-veg', data.ocorrencias.veg);
-                setVal('oc-busca', data.ocorrencias.busca);
-                setVal('oc-prev', data.ocorrencias.prev);
-                setVal('oc-outras', data.ocorrencias.outras);
+                set('oc-resgate', data.ocorrencias.resgate);
+                set('oc-urbano', data.ocorrencias.urbano);
+                set('oc-veg', data.ocorrencias.veg);
+                set('oc-busca', data.ocorrencias.busca);
+                set('oc-prev', data.ocorrencias.prev);
+                set('oc-outras', data.ocorrencias.outras);
             }
         }
     </script>
