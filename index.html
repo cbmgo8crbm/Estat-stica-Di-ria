@@ -48,12 +48,12 @@
         <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-4">
                 <div class="bg-transparent flex-shrink-0">
-                    <img src="https://api.claudette.ai/v1/files/uploaded:image_2b1941.png-52e02c2b-7c36-4993-ae93-0ff2988f3617" 
-                         alt="Brasão 8º CRBM" 
-                         class="h-24 md:h-28 w-auto brasao-shadow" 
-                         onerror="this.style.display='none'; document.getElementById('brasao-fallback').style.display='block'">
-                    <div id="brasao-fallback" class="hidden h-24 md:h-28 w-24 md:w-28 bg-red-800 rounded-full flex items-center justify-center border-4 border-yellow-500 brasao-shadow">
-                        <span class="text-[10px] md:text-xs font-black text-yellow-400 text-center leading-tight">8º<br>CRBM</span>
+                    <!-- ✅ CÍRCULO COM "8º CRBM" DENTRO -->
+                    <div class="h-24 md:h-28 w-24 md:w-28 rounded-full border-4 border-yellow-500 brasao-shadow flex items-center justify-center bg-red-800">
+                        <div class="text-center">
+                            <div class="text-lg md:text-xl font-black text-yellow-400 leading-none">8º</div>
+                            <div class="text-[10px] md:text-xs font-bold text-yellow-400 leading-none mt-1">CRBM</div>
+                        </div>
                     </div>
                 </div>
                 <div>
@@ -127,9 +127,8 @@
                     </tbody>
                 </table>
             </div>
-            <div class="mt-4 text-center no-print flex flex-col md:flex-row gap-2 justify-center items-center">
+            <div class="mt-4 text-center no-print">
                 <button onclick="loadDashboard()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded font-bold text-xs uppercase transition-colors shadow">🔄 Atualizar Dados</button>
-                <button onclick="inicializarPlanilha()" id="btn-inicializar" class="bg-yellow-600 hover:bg-yellow-700 text-white px-5 py-2 rounded font-bold text-xs uppercase transition-colors shadow">⚙️ Inicializar Planilha</button>
             </div>
             <p id="dashboard-status" class="text-[10px] text-center mt-2 min-h-[1.25rem]"></p>
         </section>
@@ -462,42 +461,6 @@
         }
 
         // ============================================================
-        // ⚙️ INICIALIZAR PLANILHA (NOVO)
-        // ============================================================
-        
-        async function inicializarPlanilha() {
-            const btn = document.getElementById('btn-inicializar');
-            const status = document.getElementById('dashboard-status');
-            
-            if (!confirm('⚠️ Isso irá preencher a Coluna A com os nomes das unidades.\nDeseja continuar?')) {
-                return;
-            }
-            
-            btn.disabled = true;
-            btn.innerHTML = '⏳ INICIALIZANDO...';
-            status.innerText = 'Configurando planilha...';
-            
-            try {
-                const result = await callScript('inicializar');
-                
-                if (result.sucesso) {
-                    status.innerText = `✅ Planilha inicializada! ${result.dados?.unidadesConfiguradas || 0} unidades configuradas.`;
-                    status.className = 'text-[10px] text-green-600 mt-2 font-bold';
-                    cachedData = null; // Invalida cache
-                    setTimeout(() => loadDashboard(), 1000);
-                } else {
-                    throw new Error(result.mensagem);
-                }
-            } catch (error) {
-                status.innerText = `❌ Erro: ${error.message}`;
-                status.className = 'text-[10px] text-red-600 mt-2 font-bold';
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '⚙️ Inicializar Planilha';
-            }
-        }
-
-        // ============================================================
         // 🚀 CARREGAMENTO DO DASHBOARD
         // ============================================================
         
@@ -515,13 +478,13 @@
                     throw new Error(result.mensagem || 'Falha ao carregar dados');
                 }
                 
-                // ✅ VERIFICAÇÃO: Se não houver unidades, sugere inicialização
                 if (!result.dados?.unidades || result.dados.unidades.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="12" class="p-4 text-center">
                         <div class="text-orange-600 font-bold mb-2">⚠️ Nenhuma unidade encontrada na planilha</div>
-                        <div class="text-xs text-gray-500 mb-3">A Coluna A pode estar vazia. Clique em "Inicializar Planilha" para configurar.</div>
+                        <div class="text-xs text-gray-500 mb-3">Verifique se a Coluna A está preenchida com os nomes das unidades.</div>
+                        <div class="text-[10px] text-gray-400">Dica: Envie dados de uma unidade primeiro para popular a planilha.</div>
                     </td></tr>`;
-                    statusEl.innerText = '⚠️ Planilha precisa ser inicializada';
+                    statusEl.innerText = '⚠️ Planilha vazia ou sem dados';
                     statusEl.className = 'text-[10px] text-orange-600 mt-2 font-bold';
                     return;
                 }
