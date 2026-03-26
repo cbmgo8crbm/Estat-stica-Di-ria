@@ -36,30 +36,27 @@
             vertical-align: top;
         }
         
-        /* === COLUNA FIXA "Unidade BM" - OTIMIZAÇÃO MOBILE === */
-        .sticky-unit {
+        /* Coluna Unidade BM - Sticky com largura ajustada */
+        .col-unidade {
             position: sticky;
             left: 0;
-            background: white;
             z-index: 10;
-            min-width: 180px;
-            max-width: 220px;
+            background: inherit;
+            white-space: nowrap;
             width: fit-content;
-            text-wrap: balance;
+            min-width: fit-content;
+            max-width: 220px;
         }
-        .sticky-unit-header {
-            position: sticky;
-            left: 0;
-            background: #374151;
-            z-index: 20;
-            min-width: 180px;
-            max-width: 220px;
-            width: fit-content;
-            text-wrap: balance;
+        .col-unidade thead th,
+        .col-unidade tbody td {
+            background: inherit;
+        }
+        .col-unidade thead th {
+            background-color: #374151 !important;
         }
         
         @media (max-width: 768px) {
-            table { min-width: 1400px !important; }
+            table { min-width: 1300px !important; }
             .td-small { min-width: 50px; padding: 6px 2px !important; font-size: 10px; }
             .input-number-sm { padding: 0.75rem 0.25rem; font-size: 14px; }
             input[type="number"]::-webkit-inner-spin-button,
@@ -67,43 +64,28 @@
             .td-pendencias { max-width: 250px; font-size: 10px; }
             .th-small { font-size: 8px; padding: 6px 3px !important; }
             
-            /* Otimização mobile para coluna fixa */
-            .sticky-unit,
-            .sticky-unit-header {
-                min-width: 130px !important;
-                max-width: 160px !important;
-                width: max-content !important;
-                padding: 8px 6px !important;
-                font-size: 11px !important;
+            /* Mobile: Unidade BM com largura justa ao conteúdo */
+            .col-unidade {
+                width: fit-content;
+                min-width: fit-content;
+                max-width: 190px;
+                padding-right: 8px !important;
+                padding-left: 8px !important;
             }
-            .sticky-unit::before,
-            .sticky-unit-header::before {
-                content: '';
-                position: absolute;
-                inset: 0;
-                background: inherit;
-                z-index: -1;
+            .col-unidade th,
+            .col-unidade td {
+                padding: 8px 10px !important;
+                font-size: 10px !important;
+                font-weight: 600 !important;
             }
-            .sticky-unit,
-            .sticky-unit-header {
-                box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+            /* Garante que o fundo da coluna sticky cubra o conteúdo ao rolar */
+            .col-unidade td {
+                background-color: white !important;
+                border-right: 2px solid #e5e7eb !important;
             }
-            
-            /* Scrollbar estilizado para mobile */
-            .table-responsive {
-                scrollbar-width: thin;
-                scrollbar-color: #cbd5e1 #f1f5f9;
-            }
-            .table-responsive::-webkit-scrollbar {
-                height: 6px;
-            }
-            .table-responsive::-webkit-scrollbar-track {
-                background: #f1f5f9;
-                border-radius: 3px;
-            }
-            .table-responsive::-webkit-scrollbar-thumb {
-                background: #94a3b8;
-                border-radius: 3px;
+            .col-unidade th {
+                background-color: #374151 !important;
+                border-right: 2px solid #6b7280 !important;
             }
         }
     </style>
@@ -194,10 +176,10 @@
 
             <!-- Tabela Consolidada -->
             <div class="bg-white rounded-lg shadow overflow-x-auto table-responsive">
-                <table class="w-full text-left border-collapse text-sm min-w-[1400px]">
+                <table class="w-full text-left border-collapse text-sm min-w-[1300px]">
                     <thead class="bg-gray-800 text-white">
                         <tr>
-                            <th rowspan="2" class="p-2 md:p-3 border-r border-gray-700 text-[10px] md:text-sm sticky-unit-header">Unidade BM</th>
+                            <th rowspan="2" class="p-2 md:p-3 border-r border-gray-700 text-[10px] md:text-sm col-unidade">Unidade BM</th>
                             <th colspan="3" class="p-1 text-center border-r border-gray-700 bg-gray-900 font-bold tracking-widest text-[8px] md:text-[10px]">Efetivo</th>
                             <th rowspan="2" class="p-2 md:p-3 border-r border-gray-700 text-[10px] md:text-sm">VTRs Ativas</th>
                             <th colspan="6" class="p-1 text-center border-b border-gray-700 bg-gray-900 font-bold tracking-widest text-[8px] md:text-[10px]">Equipamentos</th>
@@ -712,7 +694,7 @@
                 const tr = document.createElement('tr');
                 tr.className = "border-b hover:bg-gray-50 transition-colors";
                 tr.innerHTML = `
-                    <td class="p-2 md:p-3 font-bold border-r text-gray-700 text-[11px] md:text-sm sticky-unit align-top">${unit.unidade}</td>
+                    <td class="p-2 md:p-3 font-bold border-r text-gray-700 text-[11px] md:text-sm col-unidade align-top">${unit.unidade}</td>
                     <td class="p-2 md:p-3 text-center border-r ${efetivoClass} align-top">${efetivoOrd}</td>
                     <td class="p-2 md:p-3 text-center border-r ${efetivoClass} border-r-gray-300 align-top">${efetivoAc4}</td>
                     <td class="p-2 md:p-3 text-center border-r bg-purple-50 font-black text-purple-800 align-top">${efetivoTotal}</td>
