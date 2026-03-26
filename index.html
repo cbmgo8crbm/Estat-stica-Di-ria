@@ -35,14 +35,76 @@
             line-height: 1.3; 
             vertical-align: top;
         }
+        
+        /* === COLUNA FIXA "Unidade BM" - OTIMIZAÇÃO MOBILE === */
+        .sticky-unit {
+            position: sticky;
+            left: 0;
+            background: white;
+            z-index: 10;
+            min-width: 180px;
+            max-width: 220px;
+            width: fit-content;
+            text-wrap: balance;
+        }
+        .sticky-unit-header {
+            position: sticky;
+            left: 0;
+            background: #374151;
+            z-index: 20;
+            min-width: 180px;
+            max-width: 220px;
+            width: fit-content;
+            text-wrap: balance;
+        }
+        
         @media (max-width: 768px) {
-            table { min-width: 1500px !important; }
+            table { min-width: 1400px !important; }
             .td-small { min-width: 50px; padding: 6px 2px !important; font-size: 10px; }
             .input-number-sm { padding: 0.75rem 0.25rem; font-size: 14px; }
             input[type="number"]::-webkit-inner-spin-button,
             input[type="number"]::-webkit-outer-spin-button { opacity: 1; }
             .td-pendencias { max-width: 250px; font-size: 10px; }
             .th-small { font-size: 8px; padding: 6px 3px !important; }
+            
+            /* Otimização mobile para coluna fixa */
+            .sticky-unit,
+            .sticky-unit-header {
+                min-width: 130px !important;
+                max-width: 160px !important;
+                width: max-content !important;
+                padding: 8px 6px !important;
+                font-size: 11px !important;
+            }
+            .sticky-unit::before,
+            .sticky-unit-header::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: inherit;
+                z-index: -1;
+            }
+            .sticky-unit,
+            .sticky-unit-header {
+                box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+            }
+            
+            /* Scrollbar estilizado para mobile */
+            .table-responsive {
+                scrollbar-width: thin;
+                scrollbar-color: #cbd5e1 #f1f5f9;
+            }
+            .table-responsive::-webkit-scrollbar {
+                height: 6px;
+            }
+            .table-responsive::-webkit-scrollbar-track {
+                background: #f1f5f9;
+                border-radius: 3px;
+            }
+            .table-responsive::-webkit-scrollbar-thumb {
+                background: #94a3b8;
+                border-radius: 3px;
+            }
         }
     </style>
 </head>
@@ -132,10 +194,10 @@
 
             <!-- Tabela Consolidada -->
             <div class="bg-white rounded-lg shadow overflow-x-auto table-responsive">
-                <table class="w-full text-left border-collapse text-sm min-w-[1500px]">
+                <table class="w-full text-left border-collapse text-sm min-w-[1400px]">
                     <thead class="bg-gray-800 text-white">
                         <tr>
-                            <th rowspan="2" class="p-2 md:p-3 border-r border-gray-700 text-[10px] md:text-sm sticky left-0 bg-gray-800 z-10">Unidade BM</th>
+                            <th rowspan="2" class="p-2 md:p-3 border-r border-gray-700 text-[10px] md:text-sm sticky-unit-header">Unidade BM</th>
                             <th colspan="3" class="p-1 text-center border-r border-gray-700 bg-gray-900 font-bold tracking-widest text-[8px] md:text-[10px]">Efetivo</th>
                             <th rowspan="2" class="p-2 md:p-3 border-r border-gray-700 text-[10px] md:text-sm">VTRs Ativas</th>
                             <th colspan="6" class="p-1 text-center border-b border-gray-700 bg-gray-900 font-bold tracking-widest text-[8px] md:text-[10px]">Equipamentos</th>
@@ -650,7 +712,7 @@
                 const tr = document.createElement('tr');
                 tr.className = "border-b hover:bg-gray-50 transition-colors";
                 tr.innerHTML = `
-                    <td class="p-2 md:p-3 font-bold border-r text-gray-700 text-[11px] md:text-sm sticky left-0 bg-white z-10 align-top">${unit.unidade}</td>
+                    <td class="p-2 md:p-3 font-bold border-r text-gray-700 text-[11px] md:text-sm sticky-unit align-top">${unit.unidade}</td>
                     <td class="p-2 md:p-3 text-center border-r ${efetivoClass} align-top">${efetivoOrd}</td>
                     <td class="p-2 md:p-3 text-center border-r ${efetivoClass} border-r-gray-300 align-top">${efetivoAc4}</td>
                     <td class="p-2 md:p-3 text-center border-r bg-purple-50 font-black text-purple-800 align-top">${efetivoTotal}</td>
