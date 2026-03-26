@@ -8,14 +8,42 @@
     <style>
         .tab-active { border-bottom: 4px solid #1e40af; color: #1e40af; font-weight: bold; }
         .input-number-sm { width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; text-align: center; }
-        .th-small { font-size: 10px; text-transform: uppercase; text-align: center; background-color: #374151; }
-        .td-small { font-size: 11px; text-align: center; border-left: 1px solid #e5e7eb; }
+        .th-small { 
+            font-size: 9px; 
+            text-transform: uppercase; 
+            text-align: center; 
+            background-color: #374151;
+            white-space: normal;
+            line-height: 1.2;
+            padding: 8px 4px !important;
+            vertical-align: middle;
+        }
+        .td-small { font-size: 11px; text-align: center; border-left: 1px solid #e5e7eb; min-width: 50px; }
         .brasao-shadow { filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.4)); }
         .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.95); display: flex; justify-content: center; align-items: center; z-index: 50; }
         .password-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: flex; justify-content: center; align-items: center; z-index: 60; }
         @media print { .no-print { display: none; } }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
         .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        
+        /* Melhorias Mobile e Tabela */
+        .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .td-pendencias { 
+            white-space: pre-wrap; 
+            word-break: break-word; 
+            max-width: 200px; 
+            line-height: 1.3; 
+            vertical-align: top;
+        }
+        @media (max-width: 768px) {
+            table { min-width: 1500px !important; }
+            .td-small { min-width: 50px; padding: 6px 2px !important; font-size: 10px; }
+            .input-number-sm { padding: 0.75rem 0.25rem; font-size: 14px; }
+            input[type="number"]::-webkit-inner-spin-button,
+            input[type="number"]::-webkit-outer-spin-button { opacity: 1; }
+            .td-pendencias { max-width: 250px; font-size: 10px; }
+            .th-small { font-size: 8px; padding: 6px 3px !important; }
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans">
@@ -48,7 +76,6 @@
         <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-4">
                 <div class="bg-transparent flex-shrink-0">
-                    <!-- ✅ CÍRCULO COM "8º CRBM" DENTRO -->
                     <div class="h-24 md:h-28 w-24 md:w-28 rounded-full border-4 border-yellow-500 brasao-shadow flex items-center justify-center bg-red-800">
                         <div class="text-center">
                             <div class="text-lg md:text-xl font-black text-yellow-400 leading-none">8º</div>
@@ -80,18 +107,22 @@
         <!-- ABA 1: PAINEL DO COMANDO -->
         <section id="tab-dashboard" class="block">
             <!-- Cards de Estatísticas -->
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 mb-6">
                 <div class="bg-white p-3 md:p-4 rounded-lg shadow border-l-4 border-red-600 text-center">
-                    <h3 class="text-gray-500 text-[10px] md:text-xs uppercase font-bold">Efetivo Total</h3>
-                    <p id="stat-efetivo-total" class="text-xl md:text-2xl font-bold text-red-700">0</p>
+                    <h3 class="text-gray-500 text-[10px] md:text-xs uppercase font-bold">Efetivo Ord.</h3>
+                    <p id="stat-efetivo-ord" class="text-xl md:text-2xl font-bold text-red-700">0</p>
                 </div>
-                <div class="bg-white p-3 md:p-4 rounded-lg shadow border-l-4 border-blue-500 text-center">
-                    <h3 class="text-gray-500 text-[10px] md:text-xs uppercase font-bold">Ocorrências (24h)</h3>
-                    <p id="stat-ocorrencias" class="text-xl md:text-2xl font-bold text-blue-600">0</p>
+                <div class="bg-white p-3 md:p-4 rounded-lg shadow border-l-4 border-orange-500 text-center">
+                    <h3 class="text-gray-500 text-[10px] md:text-xs uppercase font-bold">Efetivo AC4</h3>
+                    <p id="stat-efetivo-ac4" class="text-xl md:text-2xl font-bold text-orange-600">0</p>
+                </div>
+                <div class="bg-white p-3 md:p-4 rounded-lg shadow border-l-4 border-purple-600 text-center">
+                    <h3 class="text-gray-500 text-[10px] md:text-xs uppercase font-bold">Total Efetivo</h3>
+                    <p id="stat-efetivo-total" class="text-xl md:text-2xl font-bold text-purple-700">0</p>
                 </div>
                 <div class="bg-white p-3 md:p-4 rounded-lg shadow border-l-4 border-yellow-500 text-center">
-                    <h3 class="text-gray-500 text-[10px] md:text-xs uppercase font-bold">Com Pendências</h3>
-                    <p id="stat-pendencias" class="text-xl md:text-2xl font-bold text-yellow-600">0</p>
+                    <h3 class="text-gray-500 text-[10px] md:text-xs uppercase font-bold">Unid. c/ Pendência</h3>
+                    <p id="stat-unidades-pendencia" class="text-xl md:text-2xl font-bold text-yellow-600">0</p>
                 </div>
                 <div class="bg-white p-3 md:p-4 rounded-lg shadow border-l-4 border-green-500 text-center">
                     <h3 class="text-gray-500 text-[10px] md:text-xs uppercase font-bold">Última Atualização</h3>
@@ -100,28 +131,31 @@
             </div>
 
             <!-- Tabela Consolidada -->
-            <div class="bg-white rounded-lg shadow overflow-x-auto">
-                <table class="w-full text-left border-collapse text-sm min-w-[900px] md:min-w-[1100px]">
+            <div class="bg-white rounded-lg shadow overflow-x-auto table-responsive">
+                <table class="w-full text-left border-collapse text-sm min-w-[1500px]">
                     <thead class="bg-gray-800 text-white">
                         <tr>
-                            <th rowspan="2" class="p-2 md:p-3 border-r border-gray-700 text-[10px] md:text-sm">Unidade BM</th>
-                            <th rowspan="2" class="p-2 md:p-3 text-center border-r border-gray-700 text-[10px] md:text-sm">Efetivo</th>
-                            <th rowspan="2" class="p-2 md:p-3 border-r border-gray-700 text-[10px] md:text-sm hidden md:table-cell">VTRs Ativas</th>
-                            <th rowspan="2" class="p-2 md:p-3 border-r border-gray-700 text-[10px] md:text-sm">Pendências</th>
-                            <th colspan="6" class="p-1 text-center border-b border-gray-700 bg-gray-900 font-bold tracking-widest text-[8px] md:text-[10px]">Ocorrências (24h)</th>
+                            <th rowspan="2" class="p-2 md:p-3 border-r border-gray-700 text-[10px] md:text-sm sticky left-0 bg-gray-800 z-10">Unidade BM</th>
+                            <th colspan="3" class="p-1 text-center border-r border-gray-700 bg-gray-900 font-bold tracking-widest text-[8px] md:text-[10px]">Efetivo</th>
+                            <th rowspan="2" class="p-2 md:p-3 border-r border-gray-700 text-[10px] md:text-sm">VTRs Ativas</th>
+                            <th colspan="6" class="p-1 text-center border-b border-gray-700 bg-gray-900 font-bold tracking-widest text-[8px] md:text-[10px]">Equipamentos</th>
+                            <th rowspan="2" class="p-2 md:p-3 border-l border-gray-700 text-center text-[10px] md:text-sm bg-gray-700">Pendências</th>
                             <th rowspan="2" class="p-2 md:p-3 border-l border-gray-700 text-center text-[10px] md:text-sm">Oficial de Dia</th>
                         </tr>
                         <tr>
-                            <th class="th-small p-1">RES</th>
-                            <th class="th-small p-1">URB</th>
-                            <th class="th-small p-1">VEG</th>
-                            <th class="th-small p-1">SALV</th>
-                            <th class="th-small p-1">PREV</th>
-                            <th class="th-small p-1 bg-blue-900 font-black">Σ</th>
+                            <th class="th-small p-1">Ord.</th>
+                            <th class="th-small p-1 border-r border-gray-700">AC4</th>
+                            <th class="th-small p-1 bg-purple-900 font-black">Total</th>
+                            <th class="th-small p-1" title="Desencarcerador">Desencar-<br>cerador</th>
+                            <th class="th-small p-1" title="DEA/DESA">DEA/<br>DESA</th>
+                            <th class="th-small p-1">Drone</th>
+                            <th class="th-small p-1" title="Compressor">Compres-<br>sor</th>
+                            <th class="th-small p-1" title="Equipamento de Mergulho Completo">Eq. Mer-<br>gulho</th>
+                            <th class="th-small p-1" title="Embarcação">Embarca-<br>ção</th>
                         </tr>
                     </thead>
                     <tbody id="consolidated-body">
-                        <tr><td colspan="12" class="p-4 text-center text-gray-500">
+                        <tr><td colspan="13" class="p-4 text-center text-gray-500">
                             <div class="animate-pulse">🔄 Carregando dados da planilha...</div>
                         </td></tr>
                     </tbody>
@@ -151,10 +185,21 @@
                     <input type="hidden" id="form-unidade">
                 </div>
 
+                <!-- Efetivo subdividido -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6">
-                    <div>
-                        <label class="block text-sm font-bold mb-2 text-gray-700 uppercase">Efetivo Pronto:</label>
-                        <input type="number" id="form-efetivo" class="w-full p-2.5 border-2 border-gray-200 rounded" placeholder="Ex: 14" min="0">
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-sm font-bold mb-2 text-gray-700 uppercase">Efetivo Ord.:</label>
+                            <input type="number" id="form-efetivo-ord" class="w-full p-2.5 border-2 border-gray-200 rounded" placeholder="Ex: 10" min="0">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold mb-2 text-gray-700 uppercase">Efetivo AC4:</label>
+                            <input type="number" id="form-efetivo-ac4" class="w-full p-2.5 border-2 border-gray-200 rounded" placeholder="Ex: 4" min="0">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold mb-2 text-purple-700 uppercase">Total:</label>
+                            <input type="text" id="form-efetivo-total" class="w-full p-2.5 border-2 border-purple-300 rounded bg-purple-50 font-bold text-purple-800" readonly value="0">
+                        </div>
                     </div>
                     <div>
                         <label class="block text-sm font-bold mb-2 text-gray-700 uppercase">Oficial / Adjunto:</label>
@@ -166,25 +211,49 @@
                     </div>
                     <div>
                         <label class="block text-sm font-bold mb-2 text-gray-700 uppercase">Viaturas Prontas:</label>
-                        <textarea id="form-vtr-ativas" class="w-full p-2 border-2 border-blue-100 rounded h-16 text-sm italic" placeholder="Prefixos..."></textarea>
+                        <textarea id="form-vtr-ativas" class="w-full p-2 border-2 border-blue-100 rounded h-16 text-sm italic" placeholder="Prefixos e status das VTRs..."></textarea>
                     </div>
                 </div>
 
+                <!-- Equipamentos -->
                 <h3 class="font-black text-blue-900 mb-4 text-[11px] uppercase flex items-center gap-2">
-                    <span class="bg-blue-900 text-white px-2 py-0.5 rounded">Estatística</span> Ocorrências Atendidas
+                    <span class="bg-blue-900 text-white px-2 py-0.5 rounded">Equipamentos</span> Quantidade Ativa
                 </h3>
                 <div class="grid grid-cols-3 md:grid-cols-6 gap-3 md:gap-4 mb-6 bg-blue-50 p-3 md:p-4 rounded-lg">
-                    <div><label class="block text-[9px] md:text-[10px] font-bold uppercase mb-1">RES</label><input type="number" id="oc-resgate" class="input-number-sm font-bold" value="0" min="0"></div>
-                    <div><label class="block text-[9px] md:text-[10px] font-bold uppercase mb-1">URB</label><input type="number" id="oc-urbano" class="input-number-sm font-bold" value="0" min="0"></div>
-                    <div><label class="block text-[9px] md:text-[10px] font-bold uppercase mb-1">VEG</label><input type="number" id="oc-veg" class="input-number-sm font-bold" value="0" min="0"></div>
-                    <div><label class="block text-[9px] md:text-[10px] font-bold uppercase mb-1">SALV</label><input type="number" id="oc-busca" class="input-number-sm font-bold" value="0" min="0"></div>
-                    <div><label class="block text-[9px] md:text-[10px] font-bold uppercase mb-1">PREV</label><input type="number" id="oc-prev" class="input-number-sm font-bold" value="0" min="0"></div>
-                    <div><label class="block text-[9px] md:text-[10px] font-bold uppercase mb-1">OUT</label><input type="number" id="oc-outras" class="input-number-sm font-bold" value="0" min="0"></div>
+                    <div>
+                        <label class="block text-[9px] md:text-[10px] font-bold uppercase mb-1 text-center" title="Desencarcerador">Desencar-<br>cerador</label>
+                        <input type="number" id="eq-des" class="input-number-sm font-bold" value="0" min="0" onchange="updateTotalEquip()">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] md:text-[10px] font-bold uppercase mb-1 text-center" title="DEA/DESA">DEA/<br>DESA</label>
+                        <input type="number" id="eq-dea" class="input-number-sm font-bold" value="0" min="0" onchange="updateTotalEquip()">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] md:text-[10px] font-bold uppercase mb-1 text-center">Drone</label>
+                        <input type="number" id="eq-drone" class="input-number-sm font-bold" value="0" min="0" onchange="updateTotalEquip()">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] md:text-[10px] font-bold uppercase mb-1 text-center" title="Compressor">Compres-<br>sor</label>
+                        <input type="number" id="eq-compr" class="input-number-sm font-bold" value="0" min="0" onchange="updateTotalEquip()">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] md:text-[10px] font-bold uppercase mb-1 text-center" title="Equipamento de Mergulho Completo">Eq. Mer-<br>gulho</label>
+                        <input type="number" id="eq-emc" class="input-number-sm font-bold" value="0" min="0" onchange="updateTotalEquip()">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] md:text-[10px] font-bold uppercase mb-1 text-center" title="Embarcação com Motor">Embarca-<br>ção</label>
+                        <input type="number" id="eq-emb" class="input-number-sm font-bold" value="0" min="0" onchange="updateTotalEquip()">
+                    </div>
                 </div>
 
+                <!-- Pendências unificadas (VTRs + Equipamentos) -->
                 <div class="mb-6">
-                    <label class="block text-sm font-bold mb-1 text-red-600 uppercase">Baixas e Motivos:</label>
-                    <textarea id="form-baixas" class="w-full p-2 border-2 border-red-100 rounded h-16 text-sm italic" placeholder="Prefixos e motivo da baixa..."></textarea>
+                    <label class="block text-sm font-bold mb-1 text-red-600 uppercase">Pendências (VTRs e/ou Equipamentos):</label>
+                    <textarea id="form-baixas" class="w-full p-2 border-2 border-red-100 rounded h-24 text-sm italic" placeholder="⚠️ DEIXE EM BRANCO CASO NÃO HAJA PENDÊNCIAS&#10;&#10;Exemplo de preenchimento (se houver):&#10;• VTR-01: Manutenção preventiva&#10;• DEA-02: Bateria descarregada&#10;• Drone: Aguardando calibração"></textarea>
+                    <p class="text-[10px] text-gray-500 mt-1 flex items-center gap-1">
+                        <span class="text-green-600 font-bold">✅</span> 
+                        Deixe este campo em branco se não houver VTRs ou equipamentos indisponíveis
+                    </p>
                 </div>
 
                 <button onclick="saveData()" id="btn-save" class="w-full bg-red-700 hover:bg-red-800 text-white font-black py-4 rounded-lg shadow-xl transition-all uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed">
@@ -238,9 +307,23 @@
             "DBM de Barro Alto": { row: 8, slug: "Barro" }
         };
         
+        // Colunas atualizadas
         const COL = {
-            NOME: 1, EFETIVO: 2, VTRS: 3, BAIXAS: 4, OFICIAL: 5, CONTATO: 6,
-            RES: 7, URB: 8, VEG: 9, SALV: 10, PREV: 11, OUT: 12, SOMA: 13, DATA: 14
+            NOME: 1, 
+            EFETIVO_ORD: 2,
+            EFETIVO_AC4: 3,
+            EFETIVO_TOTAL: 4,
+            VTRS: 5,
+            DES: 6,
+            DEA: 7,
+            DRONE: 8,
+            COMPR: 9,
+            EMC: 10,
+            EMB: 11,
+            BAIXAS: 12,
+            OFICIAL: 13,
+            CONTATO: 14,
+            DATA: 15
         };
 
         // ============================================================
@@ -260,6 +343,9 @@
             updateClock();
             setInterval(updateClock, 1000);
             checkUrlUnitParam();
+            
+            document.getElementById('form-efetivo-ord')?.addEventListener('input', updateTotalEfetivo);
+            document.getElementById('form-efetivo-ac4')?.addEventListener('input', updateTotalEfetivo);
             
             if (currentUnit) {
                 document.getElementById('btn-links')?.classList.add('hidden');
@@ -461,6 +547,27 @@
         }
 
         // ============================================================
+        // 🧮 CÁLCULOS AUTOMÁTICOS
+        // ============================================================
+        
+        function updateTotalEfetivo() {
+            const ord = parseInt(document.getElementById('form-efetivo-ord')?.value) || 0;
+            const ac4 = parseInt(document.getElementById('form-efetivo-ac4')?.value) || 0;
+            const total = ord + ac4;
+            document.getElementById('form-efetivo-total').value = total;
+        }
+
+        function updateTotalEquip() {
+            const des = parseInt(document.getElementById('eq-des')?.value) || 0;
+            const dea = parseInt(document.getElementById('eq-dea')?.value) || 0;
+            const drone = parseInt(document.getElementById('eq-drone')?.value) || 0;
+            const compr = parseInt(document.getElementById('eq-compr')?.value) || 0;
+            const emc = parseInt(document.getElementById('eq-emc')?.value) || 0;
+            const emb = parseInt(document.getElementById('eq-emb')?.value) || 0;
+            return des + dea + drone + compr + emc + emb;
+        }
+
+        // ============================================================
         // 🚀 CARREGAMENTO DO DASHBOARD
         // ============================================================
         
@@ -468,7 +575,7 @@
             const tbody = document.getElementById('consolidated-body');
             const statusEl = document.getElementById('dashboard-status');
             
-            tbody.innerHTML = '<tr><td colspan="12" class="p-4 text-center text-blue-600 font-bold"><div class="animate-pulse">🔄 Sincronizando com planilha...</div></td></tr>';
+            tbody.innerHTML = '<tr><td colspan="13" class="p-4 text-center text-blue-600 font-bold"><div class="animate-pulse">🔄 Sincronizando com planilha...</div></td></tr>';
             statusEl.innerText = '';
             
             try {
@@ -479,7 +586,7 @@
                 }
                 
                 if (!result.dados?.unidades || result.dados.unidades.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="12" class="p-4 text-center">
+                    tbody.innerHTML = `<tr><td colspan="13" class="p-4 text-center">
                         <div class="text-orange-600 font-bold mb-2">⚠️ Nenhuma unidade encontrada na planilha</div>
                         <div class="text-xs text-gray-500 mb-3">Verifique se a Coluna A está preenchida com os nomes das unidades.</div>
                         <div class="text-[10px] text-gray-400">Dica: Envie dados de uma unidade primeiro para popular a planilha.</div>
@@ -501,7 +608,7 @@
                 
             } catch (error) {
                 console.error('Erro no loadDashboard:', error);
-                tbody.innerHTML = `<tr><td colspan="12" class="p-4 text-center">
+                tbody.innerHTML = `<tr><td colspan="13" class="p-4 text-center">
                     <div class="text-red-600 font-bold mb-2">❌ Não foi possível carregar os dados</div>
                     <div class="text-xs text-gray-500 mb-3">${error.message}</div>
                     <button onclick="loadDashboard()" class="bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded text-xs font-bold uppercase">🔄 Tentar novamente</button>
@@ -516,32 +623,46 @@
             tbody.innerHTML = '';
             
             if (!unidades || unidades.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="12" class="p-4 text-center text-gray-500 text-sm">Nenhuma unidade encontrada</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="13" class="p-4 text-center text-gray-500 text-sm">Nenhuma unidade encontrada</td></tr>';
                 return;
             }
             
             unidades.forEach(unit => {
                 const d = unit.dados || {};
-                const efetivo = parseInt(d.efetivo) || 0;
-                const efetivoClass = (efetivo < 8 && efetivo > 0) ? 'text-red-600 bg-red-50 font-black' : 'text-blue-700 font-bold';
+                
+                const efetivoOrd = parseInt(d.efetivoOrd) || 0;
+                const efetivoAc4 = parseInt(d.efetivoAc4) || 0;
+                const efetivoTotal = efetivoOrd + efetivoAc4;
+                const efetivoClass = (efetivoTotal < 8 && efetivoTotal > 0) ? 'text-red-600 bg-red-50 font-black' : 'text-blue-700 font-bold';
+                
                 const baixas = d.baixas || '-';
-                const baixasClass = (baixas && baixas !== 'Nenhuma' && baixas !== '-') ? 'text-red-700 font-bold bg-red-50' : 'text-gray-500';
-                const occ = d.ocorrencias || {};
+                const baixasClass = (baixas && baixas !== 'Nenhuma' && baixas !== '-' && baixas.toString().trim()) 
+                    ? 'text-red-700 font-bold bg-red-50' 
+                    : 'text-gray-500';
+                
+                const des = parseInt(d.des) || 0;
+                const dea = parseInt(d.dea) || 0;
+                const drone = parseInt(d.drone) || 0;
+                const compr = parseInt(d.compr) || 0;
+                const emc = parseInt(d.emc) || 0;
+                const emb = parseInt(d.emb) || 0;
                 
                 const tr = document.createElement('tr');
                 tr.className = "border-b hover:bg-gray-50 transition-colors";
                 tr.innerHTML = `
-                    <td class="p-2 md:p-3 font-bold border-r text-gray-700 text-[11px] md:text-sm">${unit.unidade}</td>
-                    <td class="p-2 md:p-3 text-center border-r ${efetivoClass}">${efetivo}</td>
-                    <td class="p-2 md:p-3 text-[10px] md:text-[11px] border-r italic text-gray-600 hidden md:table-cell">${d.vtrAtivas || '-'}</td>
-                    <td class="p-2 md:p-3 text-[10px] md:text-[11px] border-r ${baixasClass}">${baixas.length > 12 ? baixas.substring(0,12)+'...' : baixas}</td>
-                    <td class="td-small text-[10px]">${occ.resgate || 0}</td>
-                    <td class="td-small text-[10px]">${occ.urbano || 0}</td>
-                    <td class="td-small text-[10px]">${occ.veg || 0}</td>
-                    <td class="td-small text-[10px]">${occ.busca || 0}</td>
-                    <td class="td-small text-[10px]">${occ.prev || 0}</td>
-                    <td class="td-small bg-blue-50 font-black border-r border-l text-blue-900">${d.soma || 0}</td>
-                    <td class="p-2 text-center bg-gray-50">
+                    <td class="p-2 md:p-3 font-bold border-r text-gray-700 text-[11px] md:text-sm sticky left-0 bg-white z-10 align-top">${unit.unidade}</td>
+                    <td class="p-2 md:p-3 text-center border-r ${efetivoClass} align-top">${efetivoOrd}</td>
+                    <td class="p-2 md:p-3 text-center border-r ${efetivoClass} border-r-gray-300 align-top">${efetivoAc4}</td>
+                    <td class="p-2 md:p-3 text-center border-r bg-purple-50 font-black text-purple-800 align-top">${efetivoTotal}</td>
+                    <td class="p-2 md:p-3 text-[10px] md:text-[11px] border-r italic text-gray-600 align-top">${d.vtrAtivas || '-'}</td>
+                    <td class="td-small align-top">${des}</td>
+                    <td class="td-small align-top">${dea}</td>
+                    <td class="td-small align-top">${drone}</td>
+                    <td class="td-small align-top">${compr}</td>
+                    <td class="td-small align-top">${emc}</td>
+                    <td class="td-small align-top">${emb}</td>
+                    <td class="p-2 md:p-3 border-l border-gray-700 text-[10px] md:text-[11px] ${baixasClass} td-pendencias align-top bg-gray-50">${baixas === '-' ? '-' : baixas}</td>
+                    <td class="p-2 text-center bg-gray-50 min-w-[120px] align-top">
                         <div class="font-bold text-[10px] md:text-[11px]">${d.oficialNome || '-'}</div>
                         <div class="text-[9px] text-blue-600">${d.oficialContato || '-'}</div>
                     </td>
@@ -551,20 +672,27 @@
         }
 
         function updateStatsCards(unidades) {
-            let totalEfetivo = 0, totalOcorrencias = 0, unidadesPendentes = 0;
+            let totalOrd = 0, totalAc4 = 0, totalEfetivo = 0, unidadesPendentes = 0;
             
             unidades.forEach(unit => {
                 const d = unit.dados || {};
-                totalEfetivo += parseInt(d.efetivo) || 0;
-                totalOcorrencias += parseInt(d.soma) || 0;
+                const ord = parseInt(d.efetivoOrd) || 0;
+                const ac4 = parseInt(d.efetivoAc4) || 0;
+                
+                totalOrd += ord;
+                totalAc4 += ac4;
+                totalEfetivo += (ord + ac4);
+                
+                // Conta quantas unidades têm pendências (não soma equipamentos)
                 if (d.baixas && d.baixas !== 'Nenhuma' && d.baixas !== '-' && d.baixas.toString().trim()) {
                     unidadesPendentes++;
                 }
             });
             
+            document.getElementById('stat-efetivo-ord').innerText = totalOrd;
+            document.getElementById('stat-efetivo-ac4').innerText = totalAc4;
             document.getElementById('stat-efetivo-total').innerText = totalEfetivo;
-            document.getElementById('stat-ocorrencias').innerText = totalOcorrencias;
-            document.getElementById('stat-pendencias').innerText = unidadesPendentes;
+            document.getElementById('stat-unidades-pendencia').innerText = unidadesPendentes;
         }
 
         // ============================================================
@@ -583,27 +711,32 @@
             
             const getNum = (id) => {
                 const val = document.getElementById(id)?.value;
-                return val !== '' ? parseInt(val) || 0 : 0;
+                return val !== '' && val !== null ? parseInt(val) || 0 : 0;
             };
             const getText = (id) => {
                 const val = document.getElementById(id)?.value?.trim();
-                return val && val !== '' ? val : '-';
+                return val && val !== '' && val !== null ? val : '-';
             };
             
+            const efetivoOrd = getNum('form-efetivo-ord');
+            const efetivoAc4 = getNum('form-efetivo-ac4');
+            
             const dados = {
-                efetivo: getNum('form-efetivo'),
+                efetivoOrd: efetivoOrd,
+                efetivoAc4: efetivoAc4,
+                efetivoTotal: efetivoOrd + efetivoAc4,
                 vtrAtivas: getText('form-vtr-ativas'),
                 baixas: getText('form-baixas'),
                 oficialNome: getText('form-oficial-nome'),
                 oficialContato: getText('form-oficial-contato'),
-                resgate: getNum('oc-resgate'),
-                urbano: getNum('oc-urbano'),
-                veg: getNum('oc-veg'),
-                busca: getNum('oc-busca'),
-                prev: getNum('oc-prev'),
-                outras: getNum('oc-outras')
+                des: getNum('eq-des'),
+                dea: getNum('eq-dea'),
+                drone: getNum('eq-drone'),
+                compr: getNum('eq-compr'),
+                emc: getNum('eq-emc'),
+                emb: getNum('eq-emb')
             };
-            dados.soma = dados.resgate + dados.urbano + dados.veg + dados.busca + dados.prev + dados.outras;
+            
             dados.updatedAt = new Date().toLocaleString('pt-BR');
             
             const originalBtnText = btn.innerHTML;
@@ -614,18 +747,19 @@
             
             try {
                 const writes = [
-                    callScript('gravar', { linha: row, coluna: COL.EFETIVO, valor: dados.efetivo, unidade: currentUnit }),
+                    callScript('gravar', { linha: row, coluna: COL.EFETIVO_ORD, valor: dados.efetivoOrd, unidade: currentUnit }),
+                    callScript('gravar', { linha: row, coluna: COL.EFETIVO_AC4, valor: dados.efetivoAc4, unidade: currentUnit }),
+                    callScript('gravar', { linha: row, coluna: COL.EFETIVO_TOTAL, valor: dados.efetivoTotal, unidade: currentUnit }),
                     callScript('gravar', { linha: row, coluna: COL.VTRS, valor: dados.vtrAtivas, unidade: currentUnit }),
+                    callScript('gravar', { linha: row, coluna: COL.DES, valor: dados.des, unidade: currentUnit }),
+                    callScript('gravar', { linha: row, coluna: COL.DEA, valor: dados.dea, unidade: currentUnit }),
+                    callScript('gravar', { linha: row, coluna: COL.DRONE, valor: dados.drone, unidade: currentUnit }),
+                    callScript('gravar', { linha: row, coluna: COL.COMPR, valor: dados.compr, unidade: currentUnit }),
+                    callScript('gravar', { linha: row, coluna: COL.EMC, valor: dados.emc, unidade: currentUnit }),
+                    callScript('gravar', { linha: row, coluna: COL.EMB, valor: dados.emb, unidade: currentUnit }),
                     callScript('gravar', { linha: row, coluna: COL.BAIXAS, valor: dados.baixas, unidade: currentUnit }),
                     callScript('gravar', { linha: row, coluna: COL.OFICIAL, valor: dados.oficialNome, unidade: currentUnit }),
                     callScript('gravar', { linha: row, coluna: COL.CONTATO, valor: dados.oficialContato, unidade: currentUnit }),
-                    callScript('gravar', { linha: row, coluna: COL.RES, valor: dados.resgate, unidade: currentUnit }),
-                    callScript('gravar', { linha: row, coluna: COL.URB, valor: dados.urbano, unidade: currentUnit }),
-                    callScript('gravar', { linha: row, coluna: COL.VEG, valor: dados.veg, unidade: currentUnit }),
-                    callScript('gravar', { linha: row, coluna: COL.SALV, valor: dados.busca, unidade: currentUnit }),
-                    callScript('gravar', { linha: row, coluna: COL.PREV, valor: dados.prev, unidade: currentUnit }),
-                    callScript('gravar', { linha: row, coluna: COL.OUT, valor: dados.outras, unidade: currentUnit }),
-                    callScript('gravar', { linha: row, coluna: COL.SOMA, valor: dados.soma, unidade: currentUnit }),
                     callScript('gravar', { linha: row, coluna: COL.DATA, valor: dados.updatedAt, unidade: currentUnit })
                 ];
                 
@@ -675,17 +809,18 @@
             
             const row = UNIT_MAPPING[unitName].row;
             const fields = [
-                { col: COL.EFETIVO, id: 'form-efetivo', type: 'number' },
+                { col: COL.EFETIVO_ORD, id: 'form-efetivo-ord', type: 'number' },
+                { col: COL.EFETIVO_AC4, id: 'form-efetivo-ac4', type: 'number' },
                 { col: COL.VTRS, id: 'form-vtr-ativas', type: 'text' },
+                { col: COL.DES, id: 'eq-des', type: 'number' },
+                { col: COL.DEA, id: 'eq-dea', type: 'number' },
+                { col: COL.DRONE, id: 'eq-drone', type: 'number' },
+                { col: COL.COMPR, id: 'eq-compr', type: 'number' },
+                { col: COL.EMC, id: 'eq-emc', type: 'number' },
+                { col: COL.EMB, id: 'eq-emb', type: 'number' },
                 { col: COL.BAIXAS, id: 'form-baixas', type: 'text' },
                 { col: COL.OFICIAL, id: 'form-oficial-nome', type: 'text' },
-                { col: COL.CONTATO, id: 'form-oficial-contato', type: 'text' },
-                { col: COL.RES, id: 'oc-resgate', type: 'number' },
-                { col: COL.URB, id: 'oc-urbano', type: 'number' },
-                { col: COL.VEG, id: 'oc-veg', type: 'number' },
-                { col: COL.SALV, id: 'oc-busca', type: 'number' },
-                { col: COL.PREV, id: 'oc-prev', type: 'number' },
-                { col: COL.OUT, id: 'oc-outras', type: 'number' }
+                { col: COL.CONTATO, id: 'form-oficial-contato', type: 'text' }
             ];
             
             for (const field of fields) {
@@ -701,6 +836,8 @@
                     console.warn(`⚠️ Não foi possível carregar ${field.id}:`, e);
                 }
             }
+            
+            updateTotalEfetivo();
         }
 
         function fillFormFromData(data) {
@@ -711,20 +848,18 @@
                 if (el && val !== undefined && val !== null) el.value = val;
             };
             
-            setVal('form-efetivo', data.efetivo);
+            setVal('form-efetivo-ord', data.efetivoOrd);
+            setVal('form-efetivo-ac4', data.efetivoAc4);
             setVal('form-vtr-ativas', data.vtrAtivas);
+            setVal('eq-des', data.des);
+            setVal('eq-dea', data.dea);
+            setVal('eq-drone', data.drone);
+            setVal('eq-compr', data.compr);
+            setVal('eq-emc', data.emc);
+            setVal('eq-emb', data.emb);
             setVal('form-baixas', data.baixas);
             setVal('form-oficial-nome', data.oficialNome);
             setVal('form-oficial-contato', data.oficialContato);
-            
-            if (data.ocorrencias) {
-                setVal('oc-resgate', data.ocorrencias.resgate);
-                setVal('oc-urbano', data.ocorrencias.urbano);
-                setVal('oc-veg', data.ocorrencias.veg);
-                setVal('oc-busca', data.ocorrencias.busca);
-                setVal('oc-prev', data.ocorrencias.prev);
-                setVal('oc-outras', data.ocorrencias.outras);
-            }
         }
     </script>
 </body>
