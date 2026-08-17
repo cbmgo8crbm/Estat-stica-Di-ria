@@ -15,7 +15,7 @@ const NOME_CURTO       = '8º CRBM';                // Usado em botões e mensag
 /* ------------------------------------------------------------
    🔗 GOOGLE APPS SCRIPT — API DA PLANILHA PRIVADA
    ------------------------------------------------------------ */
-const SCRIPT_URL = 'https://script.google.com/a/*/macros/s/seu id/exec';
+const SCRIPT_URL = 'https://script.google.com/a/*/macros/s/AKfycbzB_ZOh57vlXnIScLwDVsTHXtlkJ3AdBnzZPjvaJHiPBzrnzdH8MxTAhxGkJFKNzEU/exec';
 const API_TIMEOUT_MS = 20000;
 
 /* ------------------------------------------------------------
